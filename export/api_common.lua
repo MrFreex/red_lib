@@ -80,6 +80,80 @@ common.Utils.find = function(t, v)
     return false
 end
 
+common.Arrays = {}
+
+common.Arrays.find = function(self, v)
+    for k,e in pairs(self) do
+        if v == e then return k end
+    end
+
+    return false
+end
+
+common.Bones = {
+
+}
+
+common.Bones.Ped = exports["red_lib"]:GetData("pedBones")
+
+common.Weapons = {}
+
+local Weapons 
+
+Citizen.CreateThreadNow(function()
+    Weapons = exports["red_lib"]:GetData("weapons") -- Heavy File
+    common.Weapons.Data = Weapons
+end)
+
+common.Weapons.Types = {
+    ["rifle"] = { "GROUP_MG", "GROUP_RIFLE", "GROUP_SHOTGUN", "GROUP_SNIPER"},
+    ["pistol"] = { "GROUP_PISTOL" },
+    ["melee"] = { "GROUP_MELEE" },
+    ["heavy"] = { "GROUP_HEAVY" },
+    ["sniper"] = { "GROUP_SNIPER" },
+    ["shotgun"] = { "GROUP_SHOTGUN" },
+    ["thrown"] = { "GROUP_THROWN" },
+    ["smg"] = { "GROUP_SMG" }
+}
+
+common.Weapons.isOfGroup = function(weapon, type)
+    local hash = GetHashKey(weapon)
+
+    return GetWeapontypeGroup(hash) == GetHashKey(type)
+end
+
+common.Weapons.isOfType = function(weapon, type)
+    local t = common.Weapons.Types[type]
+    if not t then return false end
+
+    for _,e in pairs(t) do
+        if common.Weapons.isOfGroup(weapon, e) then
+            return true
+        end
+    end
+    
+    return false
+end
+
+common.Weapons.getType = function(weapon)
+    local hash = GetHashKey(weapon)
+    for k,v in pairs(common.Weapons.Types) do
+        for _,e in pairs(v) do
+            if GetWeapontypeGroup(hash) == GetHashKey(e) then
+                return k
+            end
+        end
+    end
+
+    return false
+end
+
+local weaModels = exports["red_lib"]:GetData("weaponMin")
+
+common.Weapons.getGameModel = function(model)
+    return weaModels[string.upper(model)]
+end
+
 common.Jobs = {}
 
 local JobData = exports["red_lib"]:GetData("jobs")
@@ -116,5 +190,5 @@ end
 local emergency = JobData.Emergency
 
 common.Jobs.isEmergency = function(job)
-    return common.Utils.find(policeJobs, job) or common.Utils.find(emergency, job)
+    return common.Arrays.find(policeJobs, job) or common.Arrays.find(emergency, job)
 end

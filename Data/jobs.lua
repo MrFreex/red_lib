@@ -1,2 +1,4 @@
-PoliceJobs = { "police", "sheriffP", "sheriffS" },
-Emergency = { "ambulance" }
+{
+    PoliceJobs = { "police", "sheriffP", "sheriffS" },
+    Emergency = { "ambulance" }
+}
