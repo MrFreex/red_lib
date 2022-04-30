@@ -18,15 +18,12 @@ exports("GetData", function(index)
 end)
 
 if IsDuplicityVersion() then
-    RegisterCommand("fixWeapons", function(p,a,r)
-        local Weapons = exports["red_lib"]:GetData("weapons") -- Heavy File
-        for k,e in pairs(Weapons) do
-            if GetHashKey(e.HashKey) ~= k then
-                Weapons[GetHashKey(e.HashKey)] = Weapons[k]
-                Weapons[k] = nil
-            end
-        end
-
-        SaveResourceFile(GetCurrentResourceName(), "Data/weapons.lua", json.encode(Weapons), -1)
+    RegisterCommand("refreshFiles", function(p,a,r)
+        Cache = {}
+        Events.TriggerClient("clearCache", -1, {})
     end, true)
+else
+    Events.Register("clearCache", function()
+        Cache = {}
+    end)
 end

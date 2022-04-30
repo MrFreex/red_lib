@@ -43,12 +43,12 @@ else
 end
 
 --[[
-    Registers a net event with the specified name. Automatically joining, if present, the resource name.
+    Registers an event with the specified name. Automatically joining, if present, the resource name.
 ]]
-Events.Register = function(name, callback, resname)
+Events.Register = function(name, callback, resname, notNet)
     name = repName(name, resname)
 
-    return RegisterNetEvent(name, callback)
+    return (not notNet) and RegisterNetEvent(name, callback) or AddEventHandler(name, callback)
 end
 
 common.Events = Events
