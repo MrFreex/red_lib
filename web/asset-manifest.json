@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "./static/css/main.5936c880.css",
+    "main.js": "./static/js/main.242b3c51.js",
+    "static/js/787.3bd8b770.chunk.js": "./static/js/787.3bd8b770.chunk.js",
+    "static/media/BankGothic_Regular.ttf": "./static/media/BankGothic_Regular.4108e236467bac47b375.ttf",
+    "index.html": "./index.html",
+    "main.5936c880.css.map": "./static/css/main.5936c880.css.map",
+    "main.242b3c51.js.map": "./static/js/main.242b3c51.js.map",
+    "787.3bd8b770.chunk.js.map": "./static/js/787.3bd8b770.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5936c880.css",
+    "static/js/main.242b3c51.js"
+  ]
+}
