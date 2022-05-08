@@ -106,3 +106,7 @@ function Permissions:isOfGroup(user, group)
 
     return Arrays.find(g.users, user)
 end
+
+if onLoad then
+    onLoad()
+end

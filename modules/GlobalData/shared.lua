@@ -1,5 +1,6 @@
 local Cache = {}
 
+
 exports("GetData", function(index)
     if Cache[index] then return Cache[index] end
 
@@ -17,13 +18,17 @@ exports("GetData", function(index)
     return data
 end)
 
-if IsDuplicityVersion() then
-    RegisterCommand("refreshFiles", function(p,a,r)
-        Cache = {}
-        Events.TriggerClient("clearCache", -1, {})
-    end, true)
-else
-    Events.Register("clearCache", function()
-        Cache = {}
-    end)
+onLoad = function()
+    local Events = Common("Events")
+    if IsDuplicityVersion() then
+        RegisterCommand("refreshFiles", function(p,a,r)
+            Cache = {}
+            Events.TriggerClient("clearCache", -1, {})
+        end, true)
+    else
+        Events.Register("clearCache", function()
+            Cache = {}
+        end)
+    end
 end
+

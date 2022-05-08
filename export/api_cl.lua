@@ -268,3 +268,7 @@ Anims.play = function(dict, name, params, duration, prevent, block, ped)
 end
 
 addons.Anims = Anims
+
+if onLoad then
+    onLoad()
+end

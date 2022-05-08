@@ -80,6 +80,12 @@ common.Utils.find = function(t, v)
     return false
 end
 
+common.Utils.callAll = function(tab, ...)
+    for _,v in pairs(tab) do
+        v(...)
+    end
+end
+
 common.Arrays = {}
 
 common.Arrays.find = function(self, v)
@@ -88,6 +94,15 @@ common.Arrays.find = function(self, v)
     end
 
     return false
+end
+
+common.Arrays.toArray = function(tab) -- Useful for UI stuff
+    local ret = {}
+    for k,e in pairs(tab) do
+        table.insert(ret,e)
+    end
+
+    return ret
 end
 
 common.Bones = {
