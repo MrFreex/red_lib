@@ -32,7 +32,7 @@ CreateThread(function()
 
             if type(pos) == "vector3" then
                 if #(pos - GetEntityCoords(PlayerPedId())) < Config.interactions.distance then
-
+                    -- Continue here
                 end
             end
         end
