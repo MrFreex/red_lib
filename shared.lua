@@ -95,3 +95,8 @@ function type(obj)
 end
 
 --//End
+
+CreateThread(function()
+    local Events = Common("Events")
+    Events.Trigger("loaded", {})
+end)

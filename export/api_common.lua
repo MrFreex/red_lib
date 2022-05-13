@@ -2,6 +2,28 @@ FAPI = {}
 local common = {}
 local Events = {}
 
+local Cache = {}
+
+local function __getData(index)
+    if Cache[index] then return Cache[index] end
+
+    local l = LoadResourceFile("red_lib", "Data/" .. index .. ".lua")
+    if l == nil then return nil end
+    local chunk = load("return " .. l)
+    if l:find("{") ~= 1 or not pcall(chunk) then
+        return nil
+    end
+
+    local data = chunk()
+
+    Cache[index] = data
+
+    return data
+end
+
+
+
+
 function Common(name)
     return common[name]
 end
@@ -48,8 +70,18 @@ end
 Events.Register = function(name, callback, resname, notNet)
     name = repName(name, resname)
 
-    return (not notNet) and RegisterNetEvent(name, callback) or AddEventHandler(name, callback)
+    if notNet then
+        return AddEventHandler(name, callback)
+    else
+        return RegisterNetEvent(name, callback)
+    end
 end
+
+
+Events.Register("loaded", function()
+    local nf = exports["red_lib"]:SetCache(Cache)
+    __getData = nf
+end, "red_lib")
 
 common.Events = Events
 
@@ -109,16 +141,15 @@ common.Bones = {
 
 }
 
-common.Bones.Ped = exports["red_lib"]:GetData("pedBones")
+common.Bones.Ped = __getData("pedBones")
+
+
 
 common.Weapons = {}
 
-local Weapons 
+local Weapons = __getData("weapons") -- Heavy File 
 
-Citizen.CreateThreadNow(function()
-    Weapons = exports["red_lib"]:GetData("weapons") -- Heavy File
-    common.Weapons.Data = Weapons
-end)
+common.Weapons.Data = Weapons
 
 common.Weapons.Types = {
     ["rifle"] = { "GROUP_MG", "GROUP_RIFLE", "GROUP_SHOTGUN", "GROUP_SNIPER"},
@@ -163,7 +194,11 @@ common.Weapons.getType = function(weapon)
     return false
 end
 
-local weaModels = exports["red_lib"]:GetData("weaponMin")
+local weaModels = __getData("weaponMin")
+
+local JobData = __getData("jobs")
+
+
 
 common.Weapons.getGameModel = function(model)
     return weaModels[string.upper(model)]
@@ -171,7 +206,6 @@ end
 
 common.Jobs = {}
 
-local JobData = exports["red_lib"]:GetData("jobs")
 
 local policeJobs = JobData.PoliceJobs
 
@@ -206,4 +240,30 @@ local emergency = JobData.Emergency
 
 common.Jobs.isEmergency = function(job)
     return common.Arrays.find(policeJobs, job) or common.Arrays.find(emergency, job)
+end
+
+local Bags = {}
+
+common.StateBags = Bags
+
+Bags.import = function()
+
+    local GetBag = exports["red_lib"]:Bags()
+
+    _G.Player = function(id) return GetBag("Player", id) end
+    _G.Entity = function(id) return GetBag("Entity", id) end
+    if not IsDuplicityVersion() then
+        _G.LocalPlayer = function() return GetBag("Player", GetPlayerServerId(PlayerId())) end
+    end
+
+    _G.GlobalState = function() return GetBag() end
+end
+
+Bags.Use = function(b)
+
+    local GetBag = exports["red_lib"]:Bags()
+
+    return function(id)
+        return GetBag(b, id)
+    end
 end
