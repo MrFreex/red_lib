@@ -15,7 +15,6 @@ shared_script "shared.lua"
 ui_page "web/index.html"
 
 client_scripts {
-    '@utility_lib/client/native.lua',
     "export/**_common.lua",
     "export/**_cl.lua",
     "modules/**/shared.lua",
@@ -24,7 +23,6 @@ client_scripts {
 
 
 server_scripts {
-    "@utility_lib/server/native.lua",
     "export/**_common.lua",
     "export/**_sv.lua",
     "modules/**/shared.lua",

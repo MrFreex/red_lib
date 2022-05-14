@@ -107,6 +107,12 @@ function Permissions:isOfGroup(user, group)
     return Arrays.find(g.users, user)
 end
 
-if onLoad then
-    onLoad()
+
+addons.Security = {}
+
+function addons.Security.distanceCheck(_s, _t, maxd)
+    local peds = { GetPlayerPed(_s), GetPlayerPed(_t) }
+    local coords = { GetEntityCoords(peds[1]), GetEntityCoords(peds[2]) }
+
+    return #(coords[1] - coords[2]) <= maxd
 end
