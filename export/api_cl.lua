@@ -191,11 +191,6 @@ Anims.stop = function(ped)
         return false
     end
 
-
-    for k,e in pairs(active[ped]) do
-        StopLoop(e)
-    end
-
     active[ped] = nil
     ClearPedTasks(ped)
     return true
