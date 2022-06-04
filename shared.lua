@@ -38,7 +38,7 @@ function class(obj)
         __pow = obj.__pow or obj._Pow or nil,
         __unm = obj.__unm or obj._Neg or nil,
         __concat = obj.__concat or obj._Concat or nil,
-        
+        __index = obj.__index or obj._Index or nil,
         __len = obj.__len or obj._Len or obj.__len,
         
         __eq = obj.__eq or obj._IsEqual or nil,

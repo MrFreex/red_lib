@@ -21,9 +21,6 @@ local function __getData(index)
     return data
 end
 
-
-
-
 function Common(name)
     return common[name]
 end
@@ -266,4 +263,27 @@ Bags.Use = function(b)
     return function(id)
         return GetBag(b, id)
     end
+end
+
+
+local Active = {}
+
+function Do(cb,sleep,after)
+    CreateThread(function()
+        local tid = GetCurrentThreadId()
+        local KillMe = function()
+            Active[tid] = false
+        end
+        Active[tid] = true
+        while Active[tid] do
+            cb(tid,KillMe)
+            Citizen.Wait(sleep or 0)
+        end
+
+        after()
+    end)
+end
+
+function Kill(threadId)
+    TerminateThread(threadId)
 end
