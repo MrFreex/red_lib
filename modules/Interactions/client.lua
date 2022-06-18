@@ -206,6 +206,16 @@ RegisterCommand("cInt", function(p,a,r)
     end, { close = true })
 end)
 
+RegisterCommand("cInt2", function(p,a,r)
+    Interactions.Create("test", vector3(-771.4241, 5594.5273, 33.4857), {
+        Interactions.SubInt("test2", "test", "faCar"),
+        Interactions.SubInt("test3", "test", "faCar"),
+        Interactions.SubInt("test4", "test", "faCar")
+    }, function()
+        print("test")
+    end, { close = true })
+end)
+
 RegisterCommand("+openInt", function()
     UI.toggle(true)
 end)
