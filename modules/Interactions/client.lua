@@ -241,6 +241,7 @@ RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
 AddEventHandler("onResourceStop", function(res)
     function iter(t)
         for k,e in pairs(t) do
+            print(k,e, e.options.resource)
             if e.options.resource == res then
                 t[k] = nil
             end
