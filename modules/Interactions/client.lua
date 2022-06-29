@@ -1,5 +1,7 @@
 local Interactions = {}
-exports("Interactions", Interactions)
+exports("Interactions", function()
+    return Interactions
+end)
 
 local interactions = {
     active = {},
@@ -57,6 +59,8 @@ local function parsePos(int)
     return pos
 end
 
+
+-- To optimize
 CreateThread(function()
     while true do
         if not next(interactions.drawn) then
@@ -228,4 +232,3 @@ RegisterCommand("-openInt", function()
 end)
 
 RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
-
