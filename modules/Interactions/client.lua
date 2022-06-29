@@ -45,7 +45,6 @@ end)
 
 local function parsePos(int)
     local pos
-
     if type(int.where) == "vector3" then 
         pos = int.where
     elseif type(int.where) == "number" then
@@ -239,7 +238,7 @@ end)
 
 RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
 
-AddEventHandler("resourceStopped", function(res)
+AddEventHandler("onResourceStop", function(res)
     function iter(t)
         for k,e in pairs(t) do
             if e.options.resource == res then
