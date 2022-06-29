@@ -198,6 +198,7 @@ function Interactions.PosUpdate()
 end
 
 function Interactions.Create(id, where, subints, func, options)
+    options = options or {}
     options.resource = GetInvokingResource()
     interactions.active[id] = Interaction({}, id, where, subints, func, options)
 end
