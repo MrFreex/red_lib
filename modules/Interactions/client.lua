@@ -199,7 +199,13 @@ function Interactions.PosUpdate()
 end
 
 function Interactions.Create(id, where, subints, func, options)
+    options.resource = GetInvokingResource()
     interactions.active[id] = Interaction({}, id, where, subints, func, options)
+end
+
+function Interactions.Delete(id)
+    interactions.active[id] = nil
+    interactions.drawn[id] = nil
 end
 
 RegisterCommand("cInt", function(p,a,r)
@@ -232,3 +238,16 @@ RegisterCommand("-openInt", function()
 end)
 
 RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
+
+AddEventHandler("resourceStopped", function(res)
+    function iter(t)
+        for k,e in pairs(t) do
+            if e.options.resource == res then
+                t[k] = nil
+            end
+        end
+    end
+
+    iter(interactions.active)
+    iter(interactions.drawn)
+end)
