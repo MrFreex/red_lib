@@ -12,7 +12,7 @@ shared_script "shared.lua"
 
 --// UI
 
-ui_page "web/index.html"
+ui_page "web/build/index.html"
 
 client_scripts {
     "export/**_common.lua",
@@ -34,5 +34,5 @@ server_scripts {
 files {
     "Data/**.*",
     "export/**.lua",
-    "web/**.*"
+    "web/build/**.*"
 }

@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600&family=Montserrat:wght@200;300;400;600&family=Orbitron:wght@400;600&family=Poppins:wght@200;400;600&display=swap');
+
+body {
+  margin: 0;
+  color: white;
+  font-family: Manrope;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-position: 0 0;
+  background-size: 100vw 100vh;
+  
+  overflow: hidden;
+}
+
+body:hover {
+  cursor: crosshair;
+}
+
+:root {
+  --main: #FF4747;
+}
