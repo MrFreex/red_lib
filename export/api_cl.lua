@@ -156,15 +156,7 @@ UTIL.toArray = function(tab) -- Useful for UI stuff
     return ret
 end
 
-local o_v3 = vector3
 
-function vector3(x,y,z)
-    if type(x) == "vector4" then
-        return vector3(x.x, x.y, x.z)
-    end
-
-    return o_v3(x,y,z)
-end
 
 addons.utils = UTIL
 

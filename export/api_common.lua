@@ -25,9 +25,21 @@ function Common(name)
     return common[name]
 end
 
+local o_v3 = vector3
+
+function vector3(x,y,z)
+    if type(x) == "vector4" then
+        return vector3(x.x, x.y, x.z)
+    end
+
+    return o_v3(x,y,z)
+end
+
 local function repName(name, resname)
     return ((resname) and string.format("%s:%s", resname, name) or string.format("%s:%s",GetCurrentResourceName(), name))
 end
+
+
 
 --[[
     Triggers an event with the given name and arguments. Automatically prepends the resource name to the event name.
