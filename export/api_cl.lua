@@ -191,7 +191,6 @@ end
 Anims.Allow = {0,1,2,3,4,5,6}
 
 Anims.play = function(dict, name, params, duration, prevent, block, ped)
-    print(json.encode(Anims.Allow))
     if not ped then
         ped = uPlayer.ped
     end
