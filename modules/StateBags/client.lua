@@ -54,10 +54,8 @@ exports("HookBag", function(bagType, id, k, cb)
         global = {}
     }
 
-    print(_TYPE(k))
-
     if not cb then
-        if _TYPE(k) == "function" then
+        if _TYPE(k) ~= "string" then -- Not == "function" cause funcRefs are also tables
             cb = k
         else -- Return cause no callback was supplied
             return false
@@ -76,7 +74,7 @@ exports("HookBag", function(bagType, id, k, cb)
 
     local ref = BagsCallback[bagType].bags[id]
 
-    if _TYPE(k) ~= "function" then
+    if _TYPE(k) == "string" then
         ref.indexes[k] = ref.indexes[k] or {}
         table.insert(ref.indexes[k], cb)
     else
