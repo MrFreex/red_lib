@@ -9,33 +9,36 @@ local Bags = {
 local BagsCallback = {}
 
 local function callThem(stateIndex, newValue, object, table)
+    for k,v in pairs(table) do print(k, v[1], v[2]) end
     for k,v in pairs(table) do
-        print(k,v)
         v[1](stateIndex,newValue,object)
     end
 end
 
-local function cleanup(table, res)
+local function cleanup(tab, res)
+    
     local toRem = {}
 
-    for k,e in pairs(table) do
+    for k,e in pairs(tab) do
+        print(e[2], res)
         if e[2] == res then
             table.insert(toRem,k)
         end
     end
 
     for i=1,#toRem do
-        table.remove(table, toRem[i])
+        table.remove(tab, toRem[i])
     end
 end
 
 AddEventHandler("onResourceStop", function(res)
+    print("[RED] Cleaning Statebags for ", res)
     for k,e in pairs(BagsCallback) do
-        cleanup(e.global)
+        cleanup(e.global,res)
         for i,v in pairs(e.bags) do
-            cleanup(v.global)
+            cleanup(v.global,res)
             for j,w in pairs(v.indexes) do
-                cleanup(w)
+                cleanup(w, res)
             end
         end
     end
