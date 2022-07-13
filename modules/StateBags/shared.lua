@@ -78,12 +78,11 @@ local function cleanup(tab, res, index)
 end
 
 --[[
-    Cleans all callbacks given a search query
     @param: res, what to search for
     @param: index, the index where @res is located
     @param: qf, quit at first match
 ]]
-local function cleanAll(res,index,qf)
+local function cleanAll(res,index,qf) -- Cleans all callbacks given a search query
     for k,e in pairs(BagsCallback) do
         if cleanup(e.global,res, index) and qf then return end
         for i,v in pairs(e.bags) do
