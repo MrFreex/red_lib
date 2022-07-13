@@ -3,6 +3,7 @@ BagsCallback = {}
 exports("HookBag", function(bagType, id, k, cb)
     if not bagType then return end
 
+    local hookId
     local res = GetInvokingResource()
 
     BagsCallback[bagType] = BagsCallback[bagType] or {
@@ -25,7 +26,7 @@ exports("HookBag", function(bagType, id, k, cb)
         }
     else
         table.insert(BagsCallback[bagType].global, {cb,res})
-        return true
+        return { bagType, "global", #BagsCallback[bagType].global }
     end
 
     local ref = BagsCallback[bagType].bags[id]
@@ -33,12 +34,14 @@ exports("HookBag", function(bagType, id, k, cb)
     if _TYPE(k) == "string" then
         ref.indexes[k] = ref.indexes[k] or {}
         table.insert(ref.indexes[k], {cb,res})
+        return { bagType, "bags", id, "indexes", k, #ref.indexes[k] }
     else
         table.insert(ref.global, {cb,res})
+        return { bagType, "bags", id, "global", #ref.global }
     end
-
-    return true
 end)
+
+exports("UnHookBag", function(hookId))
 
 local function callThem(stateIndex, newValue, object, table)
     for k,v in pairs(table) do print(k, v[1], v[2]) end
