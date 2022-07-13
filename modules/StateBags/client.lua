@@ -17,7 +17,7 @@ end
 local function checkForCallbacks(object, stateIndex, newValue) -- Checks for Hooks and calls the supplied functions
     if BagsCallback[object.__type] then -- Is there any hook for the bag type?
         local BagsOfType = BagsCallback[object.__type]
-        print(object.__type)
+        print(object.__type, json.encode(BagsCallback), json.encode(BagsOfType))
         callThem(BagsOfType.global) -- Call the global ones 
 
         if BagsOfType.bags[object.id] then -- Is there any hook for this bag?
