@@ -9,14 +9,12 @@ local Bag = class {
     _Init = function(self, id, t)
         self.__type = t
         self.state = {}
-        setmetatable(self.state, {
-            __call = function(me, k, v)
-                me[k] = v
-                Events.TriggerClient("syncBag", -1, { self, k, v, 0 })
-            end,
+        self.state.set = function(me, k, v)
+            me[k] = v
+            checkForCallbacks(self, k, v)
+            Events.TriggerClient("syncBag", -1, { self, k, v, 0 })
+        end
 
-            set = self.state.__call
-        })
         self.id = id
     end
 }
@@ -34,6 +32,7 @@ exports("Bags", function()
 end)
 
 Events.Register("syncBag", function(bag, k, v)
+    checkForCallbacks(bag, k, v)
     getBag(type(bag), bag.id).state[k] = v
     Events.TriggerClient("syncBag", -1, { bag, k, v, source })
 end)
