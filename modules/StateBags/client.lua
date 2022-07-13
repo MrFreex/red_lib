@@ -6,6 +6,32 @@ local Bags = {
     Global = {}
 }
 
+local reg = 0
+local IsControlJustPressed = function(key, cb)
+    reg = reg + 1
+    RegisterCommand("keymap-" .. reg, cb, false)
+    RegisterKeyMapping("keymap-" .. reg, "", "keyboard", key)
+end
+
+IsControlJustPressed("F", function()
+    local time = GetGameTimer()
+    local cveh = GetVehiclePedIsIn(PlayerPedId(),false)
+
+    if cveh ~= 0 then
+        entered = 0
+        getBag("Player", GetPlayerServerId(PlayerId())).state:set("currentVehicle", 0)
+    else
+        while GetGameTimer() - time < 3000 do
+            if IsPedInAnyVehicle(PlayerPedId(), false) then
+                entered = GetVehiclePedIsIn(PlayerPedId(),true)
+                return getBag("Player", GetPlayerServerId(PlayerId())).state:set("currentVehicle", entered)
+            end
+    
+            Wait(10)
+        end
+    end
+end)
+
 local Sync = {
     server = function(bag, index, newv)
         checkForCallbacks(bag,index,newv)
