@@ -22,7 +22,7 @@ local function checkForCallbacks(object, stateIndex, newValue) -- Checks for Hoo
         if BagsOfType.bags[object.id] then -- Is there any hook for this bag?
             local ForSingleBag = BagsOfType.bags[object.id]
 
-            callThem(ForSingleBag.global) do -- Call the global ones
+            callThem(ForSingleBag.global) -- Call the global ones
 
             if ForSingleBag.indexes[stateIndex] then
                 callThem(ForSingleBag.indexes[stateIndex]) -- Call the index-bound callbacks
