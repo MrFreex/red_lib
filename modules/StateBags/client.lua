@@ -10,9 +10,35 @@ local BagsCallback = {}
 
 local function callThem(stateIndex, newValue, object, table)
     for k,v in pairs(table) do
-        v(stateIndex,newValue,object)
+        v[1](stateIndex,newValue,object)
     end
 end
+
+local function cleanup(table, res)
+    local toRem = {}
+
+    for k,e in pairs(table) do
+        if e[2] == res then
+            table.insert(toRem,k)
+        end
+    end
+
+    for i=1,#toRem do
+        table.remove(table, toRem[i])
+    end
+end
+
+AddEventHandler("onResourceStop", function(res)
+    for k,e in pairs(BagsCallback) do
+        cleanup(e.global)
+        for i,v in pairs(e.bags) do
+            cleanup(v.global)
+            for j,w in pairs(v.indexes) do
+                cleanup(w)
+            end
+        end
+    end
+end)
 
 local function checkForCallbacks(object, stateIndex, newValue) -- Checks for Hooks and calls the supplied functions
     if BagsCallback[object.__type] then -- Is there any hook for the bag type?
@@ -49,6 +75,9 @@ local Sync = {
 
 exports("HookBag", function(bagType, id, k, cb)
     if not bagType then return end
+
+    local res = GetInvokingResource()
+
     BagsCallback[bagType] = BagsCallback[bagType] or {
         bags = {},
         global = {}
@@ -68,7 +97,7 @@ exports("HookBag", function(bagType, id, k, cb)
             indexes = {}
         }
     else
-        table.insert(BagsCallback[bagType].global, cb)
+        table.insert(BagsCallback[bagType].global, {cb,res})
         return true
     end
 
@@ -76,9 +105,9 @@ exports("HookBag", function(bagType, id, k, cb)
 
     if _TYPE(k) == "string" then
         ref.indexes[k] = ref.indexes[k] or {}
-        table.insert(ref.indexes[k], cb)
+        table.insert(ref.indexes[k], {cb,res})
     else
-        table.insert(ref.global, cb)
+        table.insert(ref.global, {cb,res})
     end
 
     return true
