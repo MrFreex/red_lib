@@ -17,6 +17,7 @@ end
 local function checkForCallbacks(object, stateIndex, newValue) -- Checks for Hooks and calls the supplied functions
     if BagsCallback[object.__type] then -- Is there any hook for the bag type?
         local BagsOfType = BagsCallback[object.__type]
+        print(object.__type)
         callThem(BagsOfType.global) -- Call the global ones 
 
         if BagsOfType.bags[object.id] then -- Is there any hook for this bag?
@@ -53,6 +54,8 @@ exports("HookBag", function(bagType, id, k, cb)
         bags = {},
         global = {}
     }
+
+    print(json.encode(BagsCallback))
 
     if not cb then
         if _TYPE(k) ~= "string" then -- Not == "function" cause funcRefs are also tables
