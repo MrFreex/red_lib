@@ -73,8 +73,8 @@ exports("HookBag", function(bagType, id, k, cb)
     end
 
     local ref = BagsCallback[bagType].bags[id]
-
-    if type(k) ~= "function" then
+    print(_TYPE(k))
+    if _TYPE(k) ~= "function" then
         ref.indexes[k] = ref.indexes[k] or {}
         table.insert(ref.indexes[k], cb)
     else

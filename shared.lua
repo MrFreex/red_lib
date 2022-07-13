@@ -87,7 +87,6 @@ end
 
 _TYPE = type
 function type(obj)    
-    print(obj, _TYPE(obj))
     if _TYPE(obj) == 'table' and obj.__type then
         return obj.__type
     else
