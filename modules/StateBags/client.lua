@@ -10,6 +10,7 @@ local BagsCallback = {}
 
 local function callThem(stateIndex, newValue, object, table)
     for k,v in pairs(table) do
+        print(k,v)
         v[1](stateIndex,newValue,object)
     end
 end
