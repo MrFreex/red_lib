@@ -17,15 +17,15 @@ end
 local function checkForCallbacks(object, stateIndex, newValue) -- Checks for Hooks and calls the supplied functions
     if BagsCallback[object.__type] then -- Is there any hook for the bag type?
         local BagsOfType = BagsCallback[object.__type]
-        callThem(object, stateIndex, newValue, BagsOfType.global) -- Call the global ones 
+        callThem(stateIndex, newValue, object, BagsOfType.global) -- Call the global ones 
 
         if BagsOfType.bags[object.id] then -- Is there any hook for this bag?
             local ForSingleBag = BagsOfType.bags[object.id]
 
-            callThem(object, stateIndex, newValue, ForSingleBag.global) -- Call the global ones
+            callThem(stateIndex, newValue, object, ForSingleBag.global) -- Call the global ones
 
             if ForSingleBag.indexes[stateIndex] then
-                callThem(object, stateIndex, newValue, ForSingleBag.indexes[stateIndex]) -- Call the index-bound callbacks
+                callThem(stateIndex, newValue, object, ForSingleBag.indexes[stateIndex]) -- Call the index-bound callbacks
             end
         end
     end
