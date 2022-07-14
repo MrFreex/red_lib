@@ -6,11 +6,10 @@ local Bags = {
     Global = {}
 }
 
-local reg = 0
+
 local IsControlJustPressed = function(key, cb)
-    reg = reg + 1
-    RegisterCommand("keymap-" .. reg, cb, false)
-    RegisterKeyMapping("keymap-" .. reg, "", "keyboard", key)
+    RegisterCommand("keymap-" .. key, cb, false)
+    RegisterKeyMapping("keymap-" .. key, "", "keyboard", key)
 end
 
 IsControlJustPressed("F", function()

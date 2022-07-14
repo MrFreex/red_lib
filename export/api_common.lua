@@ -146,6 +146,18 @@ common.Arrays.toArray = function(tab) -- Useful for UI stuff
     return ret
 end
 
+common.Objects = {}
+
+common.Objects.find = function(t,k,v)
+    for i,e in pairs(t) do
+        if e[k] == v then
+            return i
+        end
+    end
+
+    return nil
+end
+
 common.Bones = {
 
 }
