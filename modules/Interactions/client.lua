@@ -5,10 +5,11 @@ end)
 
 local interactions = {
     active = {},
-    drawn = {}
+    drawn = {},
+    hidden = {}
 }
 
-
+local showHidden = false
 
 local Utils = Common("Utils")
 local Arrays = Common("Arrays")
@@ -62,7 +63,7 @@ end
 -- To optimize
 CreateThread(function()
     while true do
-        if not next(interactions.drawn) then
+        if not next(interactions.drawn) and not next(interactions.hidden) then
             Wait(2000)
         end
 
@@ -71,7 +72,12 @@ CreateThread(function()
             if type(pos) == "vector3" then
                 if #(pos - GetEntityCoords(PlayerPedId())) < Config.interactions.distance then
                     interactions.active[k] = nil
-                    interactions.drawn[k] = int
+
+                    if int.options.hidden then
+                        interactions.hidden[k] = int
+                    else
+                        interactions.drawn[k] = int
+                    end
                 end
             end
         end
@@ -143,16 +149,25 @@ function Interactions.SubInt(id, label, icon)
     return SubInt(self, id, label, icon)
 end
 
-local function makeWebReady()
-    local ints = {}
-
-    for k,e in pairs(interactions.drawn) do
+local function push(table, ints)
+    for k,e in pairs(table) do
         table.insert(ints, {
             id = e.id,
             inside = e:subToWeb(),
             close = e.options.close
         })
     end
+end
+
+local function makeWebReady()
+    local ints = {}
+
+    push(interactions.drawn, ints)
+
+    if showHidden then
+        push(interactions.hidden, ints)
+    end
+    
 
     return ints
 end
@@ -227,10 +242,12 @@ RegisterCommand("cInt2", function(p,a,r)
 end)
 
 RegisterCommand("+openInt", function()
+    showHidden = true
     UI.toggle(true)
 end)
 
 RegisterCommand("-openInt", function()
+    showHidden = false
     UI.toggle(false)
     SendNUIMessage({
         manager = "closeActive"
