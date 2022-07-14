@@ -36,8 +36,9 @@ CreateThread(function()
 
     UI.listen("interaction", function(data,cb)
         local cat = data.category
-        interactions.drawn[cat].cb(data.id)
-        if (interactions.drawn[cat].options.close) then
+        local t = interactions.drawn[cat] or interactions.hidden[cat]
+        t.cb(data.id)
+        if (t.options.close) then
             SetNuiFocus(false, false)
         end
         cb("{}")
@@ -46,19 +47,42 @@ end)
 
 local function parsePos(int)
     local pos
+    local avoidOffset = false
     if type(int.where) == "vector3" then 
         pos = int.where
     elseif type(int.where) == "number" then
         pos = GetEntityCoords(int.where)
+        if int.options.offset then
+            int.options.offset = GetOffsetFromEntityInWorldCoords(int.where, int.options.offset.x, int.options.offset.y, int.options.offset.z)
+        end
     elseif type(int.where) == "table" then
         pos = GetWorldPositionOfEntityBone(int.where.entity, int.where.bone)
+        if int.options.offset then
+            pos = GetOffsetFromEntityGivenWorldCoords(int.where.entity, pos)
+            pos = GetOffsetFromEntityInWorldCoords(int.where.entity, pos + int.options.offset)
+            avoidOffset = true
+        end
     elseif type(int.where) == "string" then
         pos = GetClosestObjectOfType(GetEntityCoords(PlayerPedId()), Config.interactions.distance, GetHashKey(int.where), false, false, false)
     end
 
-    return pos
+    return (int.options.offset and not avoidOffset) and (pos + int.options.offset) or pos
 end
 
+function cleanFrom(t)
+    for k, int in pairs(t) do
+        local pos = parsePos(int)
+
+        if type(pos) == "vector3" then
+            if #(pos - GetEntityCoords(PlayerPedId())) > Config.interactions.distance then
+                t[k] = nil
+                interactions.active[k] = int
+            end
+        end
+
+
+    end
+end
 
 -- To optimize
 CreateThread(function()
@@ -82,18 +106,8 @@ CreateThread(function()
             end
         end
 
-        for k, int in pairs(interactions.drawn) do
-            local pos = parsePos(int)
-
-            if type(pos) == "vector3" then
-                if #(pos - GetEntityCoords(PlayerPedId())) > Config.interactions.distance then
-                    interactions.drawn[k] = nil
-                    interactions.active[k] = int
-                end
-            end
-
-
-        end
+        cleanFrom(interactions.hidden)
+        cleanFrom(interactions.drawn)
 
         Interactions.Update()
 
@@ -149,8 +163,9 @@ function Interactions.SubInt(id, label, icon)
     return SubInt(self, id, label, icon)
 end
 
-local function push(table, ints)
-    for k,e in pairs(table) do
+local function push(tab, ints)
+    
+    for k,e in pairs(tab) do
         table.insert(ints, {
             id = e.id,
             inside = e:subToWeb(),
@@ -191,15 +206,23 @@ local function relToPX(x, y)
     return {x,y}
 end
 
-local function genPositions()
-    local positions = {}
-    for k, int in pairs(interactions.drawn) do
+local function genPosFor(t,positions)
+    for k, int in pairs(t) do
         local p = parsePos(int)
         local visible,x,y = GetScreenCoordFromWorldCoord(p.x, p.y, p.z)
         if visible then
             
             positions[k] = relToPX(x,y)
         end
+    end
+end
+
+local function genPositions()
+    local positions = {}
+    genPosFor(interactions.drawn,positions)
+
+    if showHidden then
+        genPosFor(interactions.hidden,positions)
     end
 
     return positions
