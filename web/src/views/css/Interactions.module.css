@@ -21,7 +21,7 @@
 
 .main {
     font-family: "BankGothic";
-    color: white;
+    color: var(--secondary);
     text-transform: uppercase;
     font-weight: 100;
     text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
@@ -33,7 +33,7 @@
 
 
 .idot {
-    background-color: white;
+    background-color: var(--dotColor);
     border-radius: 50%;
     margin: auto;
     border: 0.1vh solid var(--main);
@@ -66,6 +66,7 @@
     overflow: visible;
     white-space:nowrap;
     font-size: 1.7vh;
+    text-shadow: var(--textBorder);
     transition: font-size 0.15s, color 0.15s, text-shadow 0.15s, cursor 0.15s ease-in-out;
 }
 
@@ -75,7 +76,6 @@
     cursor: url("../../cursor.png"), pointer;
     font-size: 2vh;
     color: var(--main);
-    
     text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
@@ -101,12 +101,12 @@
 }
 
 .interaction, .singleinteraction {
-    animation: interactions 0.5s ease-in-out;
     position: absolute;
     text-align: center;
 }
 
 .interaction {
+    animation: interactions 0.5s ease-in-out;
     display: grid;
     grid-template-columns: var(--width) var(--width) var(--width);
     grid-template-rows: var(--width) var(--width) var(--width);

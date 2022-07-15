@@ -149,6 +149,10 @@ local Interaction = class {
     end,
 
     subToWeb = function(self)
+        if not self.sub[1] then
+            return self.sub:toWeb()
+        end
+
         local sub = {}
 
         for k,e in pairs(self.sub) do

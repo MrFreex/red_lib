@@ -2,18 +2,20 @@
 
 body {
   margin: 0;
-  color: white;
+  color: var(--secondary);
   font-family: Manrope;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-position: 0 0;
   background-size: 100vw 100vh;
-  background: #000;
   overflow: hidden;
 }
 
 
 
 :root {
-  --main: #FF4747;
+  --secondary : #fff;
+  --dotColor: #191919;
+  --textBorder: none;
+  --main: #FDC44C;
 }
