@@ -17,19 +17,19 @@ interface SubInteractionI {
 
 interface InteractionI {
     id: string,
-    pos: [number, number],
-    inside: [SubInteractionI],
-    close : boolean
+    pos?: [number, number],
+    inside: SubInteractionI[] | SubInteractionI,
+    close? : boolean
 }
 
 const Placing_Order = [ 3, 5, 1, 7, 0, 8, 2, 6 ]
 
 interface RadialBlockI {
-    label : string, id : string, icon : string, onClick : Function, key: Key
+    label : string, id : string, icon : string, onClick : Function, key: Key, style? : React.CSSProperties
 }
 
 const RadialBlock = (props: RadialBlockI) => {
-    return <div className={Style.radialBlockC}>
+    return <div style={props.style} className={Style.radialBlockC}>
         <div onClick={() => props.onClick(props.id)} className={Style.radialBlock}>
             <div><FontAwesomeIcon icon={(Icons[props.icon as keyof typeof Icons] || BrandIcons[props.icon as keyof typeof BrandIcons]) as any} /></div>
             <div><span>{props.label}</span></div>
@@ -79,7 +79,7 @@ const IDot = (props: { children : any, style : any }) => {
 }
 
 const Interactions = (props : InteractionsProps) => {
-    let [interactions, setInteractions] = useState<any>(process.env.NODE_ENV === "development" ? 
+    let [interactions, setInteractions] = useState<InteractionI[]>(process.env.NODE_ENV === "development" ? 
         [{
             id: "ped_500",
             inside : [{
@@ -89,7 +89,11 @@ const Interactions = (props : InteractionsProps) => {
             }]
         }, {
             id: "ped_501",
-            inside : [{}]
+            inside : {
+                label : "Pedestrian",
+                id : "ped_500",
+                icon : "faPersonWalking"
+            }
         }] 
     : [])
 
@@ -97,12 +101,13 @@ const Interactions = (props : InteractionsProps) => {
     const [visible, setVisible] = useState(process.env.NODE_ENV === "development")
 
     useEffect(() => {
-        Five.listenFM("interactions", (data : { manager: string, interactions:[InteractionI] | undefined, positions:([Number,Number][]) | null }) => {
+        Five.listenFM("interactions", (data : { manager: string, interactions: InteractionI[] | undefined, positions:([Number,Number][]) | null }) => {
             //console.log("Ints: ", JSON.stringify(data.interactions))
             if (data.positions) {
                 setPosition(data.positions)
             }
-            setInteractions(data.interactions)
+
+            data.interactions && setInteractions(data.interactions)
         })
 
         Five.listenFM("positions", (data: { manager: string, positions:[Number,Number][] }) => {
@@ -142,13 +147,14 @@ const Interactions = (props : InteractionsProps) => {
                     top: `calc(${position[el.id][1]}px - calc(45vh/2))`
                 }
 
-                return <IDot key={el.id} style={calcPos}><Radial style={calcPos}>
+                return Array.isArray(el.inside) ? <IDot key={el.id} style={calcPos}><Radial style={calcPos}>
                     {
+                        
                         el.inside.map((sub : SubInteractionI, index : number) => {
                             return <RadialBlock key={index} label={sub.label} id={sub.id} icon={sub.icon} onClick={onClick} />
                         })
                     }
-                </Radial></IDot>
+                </Radial></IDot> : <div className={Style.singleinteraction} style={calcPos}><RadialBlock key={0} label={el.inside.label} id={el.inside.id} icon={el.inside.icon} onClick={onClick} /></div>
             })
         }
     </div>

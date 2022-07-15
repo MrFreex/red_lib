@@ -62,7 +62,7 @@
     transform: translate(calc(0% - var(--offset)), calc(0% - var(--offseth)));
 }
 
-.interaction > div {
+.interaction > div, .singleinteraction {
     overflow: visible;
     white-space:nowrap;
     font-size: 1.7vh;
@@ -71,7 +71,7 @@
 
 
 
-.interaction div:hover {
+.interaction div:hover, .singleinteraction:hover {
     cursor: url("../../cursor.png"), pointer;
     font-size: 2vh;
     color: var(--main);
@@ -96,13 +96,18 @@
     font-weight: 600;
 }
 
+.singleinteraction {
+    transform: translate(calc(22.5vh - 50%),calc(22.5vh - 50%));
+}
 
-.interaction {
+.interaction, .singleinteraction {
     animation: interactions 0.5s ease-in-out;
     position: absolute;
-    display: grid;
-    grid-template-columns: var(--width) var(--width) var(--width);
-    grid-template-rows: var(--width) var(--width) var(--width);
     text-align: center;
 }
 
+.interaction {
+    display: grid;
+    grid-template-columns: var(--width) var(--width) var(--width);
+    grid-template-rows: var(--width) var(--width) var(--width);
+}
