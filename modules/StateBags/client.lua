@@ -40,9 +40,10 @@ local Sync = {
     me = function(bag, k, v, request)
         if request == GetPlayerServerId(PlayerId()) then return end
         if not Bags[type(bag)][bag.id] then
-            Bags[type(bag)][bag.id] = getBag(type(bag), bag.id)
+            Bags[type(bag)][bag.id] = getBag(type(bag), bag.id, true)
         end
         Bags?[type(bag)][bag.id]?.state[k] = v
+        checkForCallbacks(bag,k,v)
     end
 }
 
@@ -73,9 +74,15 @@ CreateThread(function()
 end)
 
 
-function getBag(t, id)
+function getBag(t, id, avoidConvert)
     if t == nil and id == nil then
         return Bags.Global[1]
+    end
+
+    if t == "Entity" and not Bags[t][id] and not avoidConvert then
+        id = NetworkGetNetworkIdFromEntity(id)
+        NetworkSetNetworkIdDynamic(id, false)
+        SetNetworkIdExistsOnAllMachines(id, true)
     end
 
     if not Bags[t][id] then

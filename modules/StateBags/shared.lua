@@ -9,7 +9,6 @@ end
 
 exports("HookBag", function(bagType, id, k, cb)
     if not bagType then return end
-
     
     local res = GetInvokingResource()
 
@@ -21,20 +20,26 @@ exports("HookBag", function(bagType, id, k, cb)
     if not cb then
         if _TYPE(k) ~= "string" then -- Not == "function" cause funcRefs are also tables
             cb = k
+        elseif _TYPE(id) == "table" or _TYPE(id) == "function" then
+            cb = id
         else -- Return cause no callback was supplied
             return false
         end
     end
-
+    
     local hookId = returnAndIncrement()
+    if id and _TYPE(id) == "string" then
+        if not IsDuplicityVersion() then
+            id = NetworkGetNetworkIdFromEntity(id)
+        end
 
-    if id then
         BagsCallback[bagType].bags[id] = BagsCallback[bagType].bags[id] or {
             global = {},
             indexes = {}
         }
     else
-        table.insert(BagsCallback[bagType].global, {cb,res,hookId})
+        print("Global hook")
+        table.insert(BagsCallback[bagType].global, {id,res,hookId})
         return hookId
     end
 
@@ -48,8 +53,6 @@ exports("HookBag", function(bagType, id, k, cb)
         table.insert(ref.global, {cb,res,hookId})
         return hookId
     end
-
-    hookId = hookId - 1 --// This ID was not used, so it is best to decrement it
 end)
 
 
@@ -104,6 +107,7 @@ AddEventHandler("onResourceStop", function(res)
 end)
 
 function checkForCallbacks(object, stateIndex, newValue) -- Checks for Hooks and calls the supplied functions
+    
     if BagsCallback[object.__type] then -- Is there any hook for the bag type?
         local BagsOfType = BagsCallback[object.__type]
         callThem(stateIndex, newValue, object, BagsOfType.global) -- Call the global ones 
