@@ -3,8 +3,6 @@
     src: url('../../BankGothic_Regular.ttf');
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Blinker:wght@100;200;400;600&display=swap');
-
 @keyframes interactions {
     0% {
         transform: scale(0.0001%);
@@ -22,7 +20,7 @@
 }
 
 .main {
-    font-family: "Blinker";
+    font-family: "Bank Gothic";
     color: var(--secondary);
     text-transform: none;
     font-weight: 100;
