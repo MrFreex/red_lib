@@ -83,7 +83,7 @@ const Interactions = (props : InteractionsProps) => {
         [{
             id: "ped_500",
             inside : [{
-                label : "Pedestrian",
+                label : "Kill The dude",
                 id : "ped_500",
                 icon : "faPersonWalking"
             }]

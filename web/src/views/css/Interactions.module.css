@@ -3,6 +3,8 @@
     src: url('../../BankGothic_Regular.ttf');
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Blinker:wght@100;200;400;600&display=swap');
+
 @keyframes interactions {
     0% {
         transform: scale(0.0001%);
@@ -20,9 +22,9 @@
 }
 
 .main {
-    font-family: "BankGothic";
+    font-family: "Blinker";
     color: var(--secondary);
-    text-transform: uppercase;
+    text-transform: capitalize;
     font-weight: 100;
     text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     position: absolute;
@@ -93,7 +95,7 @@
 }
 
 .radialBlock > div {
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .singleinteraction {
