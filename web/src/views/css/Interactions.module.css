@@ -22,7 +22,7 @@
 .main {
     font-family: "BankGothic";
     color: var(--secondary);
-    text-transform: none;
+    text-transform: uppercase;
     font-weight: 100;
     text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     position: absolute;
