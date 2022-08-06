@@ -70,7 +70,7 @@ local Bag = class {
 }
 
 CreateThread(function()
-    Bags.Global[1] = Bag({}, "Global", 1)
+    Bags.Global[1] = Bag({}, 1, "Global")
 end)
 
 

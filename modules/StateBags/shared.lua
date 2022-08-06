@@ -38,7 +38,6 @@ exports("HookBag", function(bagType, id, k, cb)
             indexes = {}
         }
     else
-        print("Global hook")
         table.insert(BagsCallback[bagType].global, {id,res,hookId})
         return hookId
     end
@@ -107,7 +106,6 @@ AddEventHandler("onResourceStop", function(res)
 end)
 
 function checkForCallbacks(object, stateIndex, newValue) -- Checks for Hooks and calls the supplied functions
-    
     if BagsCallback[object.__type] then -- Is there any hook for the bag type?
         local BagsOfType = BagsCallback[object.__type]
         callThem(stateIndex, newValue, object, BagsOfType.global) -- Call the global ones 
