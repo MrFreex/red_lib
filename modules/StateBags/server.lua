@@ -31,6 +31,10 @@ exports("Bags", function()
     return getBag
 end)
 
+Events.Register("requestBags", function()
+    Events.TriggerClient("initialSync", source, { Bags })
+end)
+
 Events.Register("syncBag", function(bag, k, v)
     checkForCallbacks(bag, k, v)
     getBag(type(bag), bag.id).state[k] = v

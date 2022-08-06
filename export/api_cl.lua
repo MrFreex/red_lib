@@ -17,8 +17,6 @@ local Blips = {
     end
 }
 
-
-
 --// Class
 
 function Blips:create()

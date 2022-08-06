@@ -6,6 +6,10 @@ local Bags = {
     Global = {}
 }
 
+Events.TriggerServer("requestBags", {})
+Events.Register("initialSync", function(sv_bags)
+    Bags = sv_bags
+end)
 
 local IsControlJustPressed = function(key, cb)
     RegisterCommand("keymap-" .. key, cb, false)
