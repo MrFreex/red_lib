@@ -2,7 +2,8 @@ local Events = Common("Events")
 
 local Bags = {
     Player = {},
-    Entity = {}
+    Entity = {},
+    Global = {}
 }
 
 local Bag = class {
@@ -19,7 +20,15 @@ local Bag = class {
     end
 }
 
+CreateThread(function()
+    Bags.Global[1] = Bag({}, 1, "Global")
+end)
+
 function getBag(t, id)
+    if t == nil and id == nil then
+        return Bags.Global[1]
+    end
+
     if not Bags[t][id] then
         Bags[t][id] = Bag({}, id, t)
     end
