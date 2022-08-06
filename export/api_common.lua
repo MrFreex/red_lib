@@ -277,6 +277,8 @@ Bags.import = function()
         _G.LocalPlayer = function() return GetBag("Player", GetPlayerServerId(PlayerId())) end
     end
 
+    _G.Global = function(id) return GetBag("Global", id) end
+
     _G.GlobalState = function() return GetBag() end
 end
 
