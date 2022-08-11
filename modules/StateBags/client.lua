@@ -6,18 +6,48 @@ local Bags = {
     Global = {}
 }
 
+Events.TriggerServer("requestBags", {})
+Events.Register("initialSync", function(sv_bags)
+    Bags = sv_bags
+end)
+
+local IsControlJustPressed = function(key, cb)
+    RegisterCommand("keymap-" .. key, cb, false)
+    RegisterKeyMapping("keymap-" .. key, "", "keyboard", key)
+end
+
+IsControlJustPressed("F", function()
+    local time = GetGameTimer()
+    local cveh = GetVehiclePedIsIn(PlayerPedId(),false)
+
+    if cveh ~= 0 then
+        entered = 0
+        getBag("Player", GetPlayerServerId(PlayerId())).state:set("currentVehicle", 0)
+    else
+        while GetGameTimer() - time < 3000 do
+            if IsPedInAnyVehicle(PlayerPedId(), false) then
+                entered = GetVehiclePedIsIn(PlayerPedId(),true)
+                return getBag("Player", GetPlayerServerId(PlayerId())).state:set("currentVehicle", entered)
+            end
+    
+            Wait(10)
+        end
+    end
+end)
 
 local Sync = {
     server = function(bag, index, newv)
+        checkForCallbacks(bag,index,newv)
         Events.TriggerServer("syncBag", { bag,index,newv })
     end,
 
     me = function(bag, k, v, request)
         if request == GetPlayerServerId(PlayerId()) then return end
         if not Bags[type(bag)][bag.id] then
-            Bags[type(bag)][bag.id] = getBag(type(bag), bag.id)
+            Bags[type(bag)][bag.id] = getBag(type(bag), bag.id, true)
         end
         Bags?[type(bag)][bag.id]?.state[k] = v
+        checkForCallbacks(bag,k,v)
     end
 }
 
@@ -44,13 +74,19 @@ local Bag = class {
 }
 
 CreateThread(function()
-    Bags.Global[1] = Bag({}, "Global", 1)
+    Bags.Global[1] = Bag({}, 1, "Global")
 end)
 
 
-function getBag(t, id)
+function getBag(t, id, avoidConvert)
     if t == nil and id == nil then
         return Bags.Global[1]
+    end
+
+    if t == "Entity" and not Bags[t][id] and not avoidConvert then
+        id = NetworkGetNetworkIdFromEntity(id)
+        NetworkSetNetworkIdDynamic(id, false)
+        SetNetworkIdExistsOnAllMachines(id, true)
     end
 
     if not Bags[t][id] then

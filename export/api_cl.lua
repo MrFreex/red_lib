@@ -17,8 +17,6 @@ local Blips = {
     end
 }
 
-
-
 --// Class
 
 function Blips:create()
@@ -156,15 +154,7 @@ UTIL.toArray = function(tab) -- Useful for UI stuff
     return ret
 end
 
-local o_v3 = vector3
 
-function vector3(x,y,z)
-    if type(x) == "vector4" then
-        return vector3(x.x, x.y, x.z)
-    end
-
-    return o_v3(x,y,z)
-end
 
 addons.utils = UTIL
 
@@ -196,10 +186,9 @@ Anims.stop = function(ped)
     return true
 end
 
-Anims.Block = {24,257,25,263,Keys['R'],Keys['SPACE'],Keys['Q'],Keys['TAB'],Keys['F'],Keys['F1'],Keys['F2'],Keys['F3'],Keys['F6'],Keys['V'],Keys['C'],Keys['X'],59,71,72,47,264,257,140,141,142,143,75,27}
+Anims.Allow = {0,1,2,3,4,5,6}
 
 Anims.play = function(dict, name, params, duration, prevent, block, ped)
-
     if not ped then
         ped = uPlayer.ped
     end
@@ -256,11 +245,12 @@ Anims.play = function(dict, name, params, duration, prevent, block, ped)
                 end
     
                 if block then
-                    for i=1, #Anims.Block do
-                        if old_DisableControlAction then
-                            old_DisableControlAction(0, Anims.Block[i], true)
+                    DisableAllControlActions(0)
+                    for i=1, #Anims.Allow do
+                        if old_EnableControlAction then
+                            old_EnableControlAction(0, Anims.Allow[i], true)
                         else
-                            DisableControlAction(0, Anims.Block[i], true)
+                            EnableControlAction(0, Anims.Allow[i], true)
                         end
                     end
                 else
