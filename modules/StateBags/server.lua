@@ -6,6 +6,34 @@ local Bags = {
     Global = {}
 }
 
+AddEventHandler("updateBagIndex", function(b_type,b_id,index,value)
+    if Bags[b_type] and Bags[b_type][b_id] then
+        rawset(Bags[b_type][b_id], index, value)
+    end
+end)
+
+exports("cleanBag", function(bag_type, bag_id)
+    if not bag_id then bag_id = bag_type bag_type = "Global" end
+
+    local exists = Bags[bag_type] and Bags[bag_type][bag_id]
+    if exists then 
+        Bags[bag_type][bag_id] = nil 
+        Events.TriggerClient("deleteBag", -1, { bag_type, bag_id })
+    end
+
+    return exists
+end)
+
+exports("cleanBagIfHas", function(bag_type, key)
+    local exists = Bags[bag_type]
+
+    for k,e in pairs(exists) do
+        if e.state[key] then
+            e.state:set(key,nil)
+        end
+    end
+end)
+
 local Bag = class {
     _Init = function(self, id, t)
         self.__type = t

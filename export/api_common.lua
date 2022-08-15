@@ -269,7 +269,22 @@ common.StateBags = Bags
 
 Bags.import = function()
 
-    local GetBag = exports["red_lib"]:Bags()
+    local GetRealBag = exports["red_lib"]:Bags()
+
+    local function GetBag(bag_type, id)
+        local Bag = GetRealBag(bag_type, id)
+        AddEventHandler("updateBagIndex", function(b_type,b_id,index,value)
+            if b_type == bag_type and b_id == id then
+                rawset(Bag, index, value)
+            end
+        end)
+
+        return setmetatable(Bag, {
+            __newindex = function(self, index, value)
+                TriggerEvent("updateBagIndex", bag_type, id, index, value)
+            end
+        })
+    end
 
     _G.Player = function(id) return GetBag("Player", id) end
     _G.Entity = function(id) return GetBag("Entity", id) end
@@ -289,6 +304,30 @@ Bags.Use = function(b)
     return function(id)
         return GetBag(b, id)
     end
+end
+
+Bags.PureState = function(bag)
+    local ret = {}
+
+    for k,e in pairs(bag.state) do
+        if k ~= "set" then ret[k] = e end
+    end
+
+    return ret
+end
+
+common.Strings = {}
+
+common.Strings.split = function(inputstr,sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t={}
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+            table.insert(t, str)
+    end
+
+    return t
 end
 
 

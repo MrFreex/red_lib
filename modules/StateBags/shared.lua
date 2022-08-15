@@ -28,7 +28,7 @@ exports("HookBag", function(bagType, id, k, cb)
     end
     
     local hookId = returnAndIncrement()
-    if id and _TYPE(id) == "string" then
+    if id and (_TYPE(id) == "string" or _TYPE(id) == "number") then
         if (not IsDuplicityVersion()) and bagType == "entity" then
             id = NetworkGetNetworkIdFromEntity(id)
         end

@@ -6,9 +6,21 @@ local Bags = {
     Global = {}
 }
 
+AddEventHandler("updateBagIndex", function(b_type,b_id,index,value)
+    if Bags[b_type] and Bags[b_type][b_id] then
+        rawset(Bags[b_type][b_id], index, value)
+    end
+end)
+
 Events.TriggerServer("requestBags", {})
 Events.Register("initialSync", function(sv_bags)
     Bags = sv_bags
+end)
+
+Events.Register("deleteBag", function(bag_type,bag_id)
+    if Bags[bag_type] and Bags[bag_type][bag_id] then
+        Bags[bag_type][bag_id] = nil
+    end
 end)
 
 local IsControlJustPressed = function(key, cb)
@@ -99,3 +111,4 @@ end
 exports("Bags", function()
     return getBag
 end)
+
