@@ -4,6 +4,83 @@ local Events = {}
 
 local Cache = {}
 
+--// Import Classify
+
+local function merge(...)
+    local args = ({...})
+    local merged = {}
+
+    for i = 1, #args do
+        for k,v in pairs(args[i]) do
+            merged[k] = v
+        end
+    end
+    return merged
+end
+
+function class(obj)
+    obj.__type = "uClass"
+    
+    local class = {
+        -- metamethods
+        __add = obj.__add or obj._Add or nil,
+        __sub = obj.__sub or obj._Sub or nil,
+        __mul = obj.__mul or obj._Mul or nil,
+        __div = obj.__div or obj._Div or nil,
+        __idiv = obj.__idiv or obj._FloorDiv or nil,
+        __mod = obj.__mod or obj._Mod or nil,
+        __pow = obj.__pow or obj._Pow or nil,
+        __unm = obj.__unm or obj._Neg or nil,
+        __concat = obj.__concat or obj._Concat or nil,
+        __index = obj.__index or obj._Index or nil,
+        __len = obj.__len or obj._Len or obj.__len,
+        
+        __eq = obj.__eq or obj._IsEqual or nil,
+        __lt = obj.__lt or obj._IsLessThan or nil,
+        __le = obj.__le or obj._IsLessOrEqual or nil,
+        
+        __band = obj.__band or obj._And or nil,
+        __bor = obj.__bor or obj._Or or nil,
+        __bxor = obj.__bxor or obj._Xor or nil,
+        __bnot = obj.__bnot or obj._Not or nil,
+        
+        __shl = obj.__shl or obj._LShift or nil,
+        __shr = obj.__shr or obj._RShift or nil,
+        
+        __call = obj.__call or obj._Call or nil,
+    }
+
+    return function(...)
+        local class = setmetatable(obj, class)
+
+        if class._Init then
+            class:_Init(...)
+        end
+
+        return class
+    end
+end
+
+function extend(class, extension)
+    if type(class) ~= 'function' then
+        error("Cant extend a non uClass object")
+    end
+    
+    return function(options)
+        local a = class()
+        
+        local class = setmetatable(options and merge(options, extension, a) or merge(extension, a), a)
+
+        if class._Init then
+            class:_Init()
+        end
+
+        return class
+    end
+end
+
+--// End Classify
+
 local function __getData(index)
     if Cache[index] then return Cache[index] end
 
@@ -263,58 +340,249 @@ common.Jobs.isEmergency = function(job)
     return common.Arrays.find(policeJobs, job) or common.Arrays.find(emergency, job)
 end
 
-local Bags = {}
+local RedStateBags = {}
 
-common.StateBags = Bags
+common.StateBags = RedStateBags
 
-Bags.import = function()
+local Bags = {
+    Player = {},
+    Entity = {},
+    Global = {}
+}
 
-    local GetRealBag = exports["red_lib"]:Bags()
+setmetatable(Bags, {
+    __call = function(self, bag_identification)
+        return Bags[bag_identification.type][bag_identification.id]
+    end
+})
 
-    local function GetBag(bag_type, id)
-        local Bag = GetRealBag(bag_type, id)
-        AddEventHandler("updateBagIndex", function(b_type,b_id,index,value)
-            if b_type == bag_type and b_id == id then
-                rawset(Bag, index, value)
+
+
+
+Events.Register("sync_bag", function(bag_identification, state_index, state_value) 
+    if not Bags(bag_identification) then
+        RedStateBags.GetBag(bag_identification.type, bag_identification.id).state[state_index] = state_value
+    end
+end, "red_statebags")
+
+local GlobalHooks = {}
+
+
+RedStateBags.UnHook = function(hook_cookie)
+    local iterate = function(table)
+        for k,e in pairs(table) do
+            if e[1] == hook_cookie then
+                table[k] = nil
+                return true
             end
-        end)
+        end
 
-        return setmetatable(Bag, {
-            __newindex = function(self, index, value)
-                TriggerEvent("updateBagIndex", bag_type, id, index, value)
+        return false
+    end
+
+    for bag_type,bag_table in pairs(GlobalHooks) do
+        if iterate(bag_table) then
+            return true
+        end
+    end
+
+    return false
+end
+
+
+local last_hook_id = -1
+
+local CallHooks = function(hook_table, ...)
+    for _,v in pairs(hook_table) do
+        v[2](..., v[1])
+    end
+end
+
+local BaseBag = class {
+    _Init = function(self, bag_type, bag_id)
+        self.__type = bag_type
+        self.id = bag_id
+
+        self.state = {}
+
+        self.lastHookId = -1
+        self.myHooks = {
+            global = {},
+            indexed = {}
+        }
+
+        Events.Register("sync_bag", function(bag_identification, state_index, state_value) 
+            if self:equals(bag_identification) then
+               self.state[state_index] = state_value
+               self:triggerHooks(state_index,state_value)
+            end
+        end, "red_statebags")
+
+        local setStateFunction = function(me, k, v)
+            rawset(me, k, v)
+            self:syncState(k, v)
+        end
+
+        setmetatable(self.state, {
+            __call = setStateFunction,
+
+            __index = function(me, k)
+                if k == "set" then
+                    return setStateFunction
+                end
+
+                return rawget(me, k)
             end
         })
+    end,
+
+    triggerHooks = function(self, k, v)
+        if GlobalHooks[self.__type] then
+            CallHooks(GlobalHooks[self.__type], self.id, k, v)
+        end
+
+        CallHooks(self.myHooks.global, k, v)
+
+        if self.myHooks.indexed[k] then
+            CallHooks(self.myHooks.indexed[k], v)
+        end
+    end,
+
+    hook = function(self, watch_index, callback)
+        if not callback then
+            callback = watch_index
+            watch_index = nil
+        end
+
+        if not callback then return false end
+
+        self.lastHookId = self.lastHookId + 1
+
+        local addToTable
+
+        if watch_index then
+            self.myHooks.indexed[watch_index] = self.myHooks.indexed[watch_index] or {}
+            addToTable = self.myHooks.indexed[watch_index]
+        else
+            addToTable = self.myHooks.global
+        end
+        
+        table.insert(addToTable, {self.lastHookId, callback})
+
+        return self.lastHookId
+    end,
+
+    unhook = function(self, hook_cookie)
+        local iterate = function(table)
+            for k,e in pairs(table) do
+                if e[1] == hook_cookie then
+                    table[k] = nil
+                    return true
+                end
+            end
+
+            return false
+        end
+
+        if iterate(self.myHooks.global) then
+            return true
+        end
+
+        for k,e in pairs(self.myHooks.indexed) do
+            if iterate(e) then
+                return true
+            end
+        end
+
+        return false
+    end,
+
+    getIdentity = function(self)
+        return { id = self.id, type = self.__type }
+    end,
+
+    equals = function(self, compare_to)
+        local identity = self:getIdentity()
+        return identity.id == compare_to.id and identity.type == compare_to.type
+    end,
+
+    syncState = function(self, state_index, state_value)
+        if IsDuplicityVersion() then
+            Events.TriggerClient("sync_bag", -1, { self:getIdentity(), state_index, state_value }, "red_statebags")
+        else
+            Events.TriggerServer("sync_bag_fc", { self:getIdentity(), state_index, state_value }, "red_statebags")
+        end
+    end
+}
+
+RedStateBags.GetBag = function(bag_type, bag_id)
+    if Bags[bag_type][bag_id] then 
+        return Bags[bag_type][bag_id]
     end
 
-    _G.Player = function(id) return GetBag("Player", id) end
-    _G.Entity = function(id) return GetBag("Entity", id) end
-    if not IsDuplicityVersion() then
-        _G.LocalPlayer = function() return GetBag("Player", GetPlayerServerId(PlayerId())) end
-    end
+    Bags[bag_type][bag_id] = Bags[bag_type][bag_id] or BaseBag(bag_type, bag_id)
 
-    _G.Global = function(id) return GetBag("Global", id) end
-
-    _G.GlobalState = function() return GetBag() end
+    return Bags[bag_type][bag_id]
 end
 
-Bags.Use = function(b)
 
-    local GetBag = exports["red_lib"]:Bags()
-
-    return function(id)
-        return GetBag(b, id)
-    end
-end
-
-Bags.PureState = function(bag)
-    local ret = {}
-
-    for k,e in pairs(bag.state) do
-        if k ~= "set" then ret[k] = e end
+RedStateBags.import = function()
+    for k,e in pairs(Bags) do
+        _G[k] = function(bag_id)
+            return RedStateBags.GetBag(k, bag_id)
+        end
     end
 
-    return ret
+    if IsDuplicityVersion() then
+        _G.ServerState = function()
+            return RedStateBags.GetBag("Player", 0)
+        end
+    else
+        _G.LocalPlayer = function()
+            return RedStateBags.GetBag("Player", GetPlayerServerId(PlayerId()))
+        end
+
+        _G.CurrentVehicle = function()
+            local veh = GetVehiclePedIsIn(PlayerPedId(), false)
+            if veh ~= 0 then
+                return RedStateBags.GetBag("Entity", veh)
+            end
+        end
+    end
+    
 end
+
+RedStateBags.Hook = function(bag_type, callback)
+    if not (bag_type and callback) then return end
+
+    GlobalHooks[bag_type] = GlobalHooks[bag_type] or {}
+    
+    last_hook_id = last_hook_id + 1
+
+    table.insert(GlobalHooks[bag_type], {last_hook_id, callback})
+
+    return last_hook_id
+end
+
+--[[
+RedStateBags.Hook = function(bag_type, bag_id, state_index, callback)
+    if not bag_type then return end
+
+    if not callback then
+        if state_index then
+            callback = state_index
+            state_index = nil
+        elseif bag_id then
+            callback = bag_id
+            bag_id = nil
+        end
+    end
+
+    local ThisHook = Hook(bag_type,bag_id,)
+end
+
+]]
+
 
 common.Strings = {}
 
