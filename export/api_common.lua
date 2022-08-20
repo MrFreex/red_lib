@@ -51,7 +51,7 @@ function class(obj)
     }
 
     return function(...)
-        local class = setmetatable(obj, class)
+        local class = setmetatable(merge({},obj), class)
 
         if class._Init then
             class:_Init(...)
@@ -360,9 +360,9 @@ setmetatable(Bags, {
 
 
 Events.Register("sync_bag", function(bag_identification, state_index, state_value) 
-    if not Bags(bag_identification) then
-        RedStateBags.GetBag(bag_identification.type, bag_identification.id).state[state_index] = state_value
-    end
+    local bag = Bags(bag_identification) or RedStateBags.GetBag(bag_identification.type, bag_identification.id)
+    bag.state[state_index] = state_value
+    bag:triggerHooks(state_index,state_value)
 end, "red_statebags")
 
 local GlobalHooks = {}
@@ -394,6 +394,7 @@ local last_hook_id = -1
 
 local CallHooks = function(hook_table,...)
     local args = {...}
+
     for _,v in pairs(hook_table) do
         local newTable = { table.unpack(args) }
         table.insert(newTable, v[1])
@@ -414,10 +415,13 @@ local BaseBag = class {
             indexed = {}
         }
 
-        Events.Register("sync_bag", function(bag_identification, state_index, state_value) 
+        
+
+        Events.Register("cleanState", function(bag_identification)
             if self:equals(bag_identification) then
-               self.state[state_index] = state_value
-               self:triggerHooks(state_index,state_value)
+                for k,e in pairs(self.state) do
+                    self.state[k] = nil
+                end
             end
         end, "red_statebags")
 
@@ -432,6 +436,14 @@ local BaseBag = class {
             __index = function(me, k)
                 if k == "set" then
                     return setStateFunction
+                elseif k == "clean" then
+                    return function(self)
+                        if IsDuplicityVersion() then
+                            Events.TriggerClient("cleanState", -1, { self:getIdentity() }, "red_statebags")
+                        else
+                            Events.TriggerServer("cleanState_fc", { self:getIdentity() }, "red_statebags")
+                        end
+                    end
                 end
 
                 return rawget(me, k)
@@ -439,13 +451,17 @@ local BaseBag = class {
         })
     end,
 
+    __len = function(self)
+        return json.decode(json.encode(self.state))
+    end,
+
     triggerHooks = function(self, k, v)
         if GlobalHooks.all then
-            CallHooks(GlobalHooks.all, self.__type, self.id, k, v)
+            CallHooks(GlobalHooks.all, self, k, v)
         end
 
         if GlobalHooks[self.__type] then
-            CallHooks(GlobalHooks[self.__type], self.id, k, v)
+            CallHooks(GlobalHooks[self.__type], self, k, v)
         end
 
         CallHooks(self.myHooks.global, k, v)
@@ -532,6 +548,23 @@ RedStateBags.GetBag = function(bag_type, bag_id)
     return Bags[bag_type][bag_id]
 end
 
+if IsDuplicityVersion() then
+    RedStateBags.cleanBagIfHas = function(bag_type, state_index)
+        for k,e in pairs(Bags[bag_type] or {}) do
+            if e.state[state_index] then
+                e.state(state_index, nil)
+            end
+        end
+    end
+    
+    RedStateBags.cleanBag = function(bag_type, bag_id)
+        local bag = (Bags[bag_type] or {})[bag_id]
+        if not bag then return end
+        bag.state:clean()
+    end
+end
+
+
 
 RedStateBags.import = function()
     for k,e in pairs(Bags) do
@@ -541,13 +574,9 @@ RedStateBags.import = function()
     end
 
     if IsDuplicityVersion() then
-        _G.ServerState = function()
-            return RedStateBags.GetBag("Player", 0)
-        end
+        _G.ServerState = RedStateBags.GetBag("Player", 0)
     else
-        _G.LocalPlayer = function()
-            return RedStateBags.GetBag("Player", GetPlayerServerId(PlayerId()))
-        end
+        _G.LocalPlayer = RedStateBags.GetBag("Player", GetPlayerServerId(PlayerId()))
 
         _G.CurrentVehicle = function()
             local veh = GetVehiclePedIsIn(PlayerPedId(), false)
