@@ -392,9 +392,12 @@ end
 
 local last_hook_id = -1
 
-local CallHooks = function(hook_table, ...)
+local CallHooks = function(hook_table,...)
+    local args = {...}
     for _,v in pairs(hook_table) do
-        v[2](..., v[1])
+        local newTable = { table.unpack(args) }
+        table.insert(newTable, v[1])
+        v[2](table.unpack(newTable))
     end
 end
 
@@ -437,6 +440,10 @@ local BaseBag = class {
     end,
 
     triggerHooks = function(self, k, v)
+        if GlobalHooks.all then
+            CallHooks(GlobalHooks.all, self.__type, self.id, k, v)
+        end
+
         if GlobalHooks[self.__type] then
             CallHooks(GlobalHooks[self.__type], self.id, k, v)
         end
@@ -553,7 +560,12 @@ RedStateBags.import = function()
 end
 
 RedStateBags.Hook = function(bag_type, callback)
-    if not (bag_type and callback) then return end
+    if not (bag_type) then return end
+
+    if not callback then 
+        callback = bag_type 
+        bag_type = "all"
+    end
 
     GlobalHooks[bag_type] = GlobalHooks[bag_type] or {}
     
