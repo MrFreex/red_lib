@@ -56,8 +56,8 @@ function class(obj)
         __call = obj.__call or obj._Call or nil,
     }
 
-    return function(options, ...)
-        local class = setmetatable(options and merge(obj, options) or obj, class)
+    return function(...)
+        local class = setmetatable(merge({},obj), class)
 
         if class._Init then
             class:_Init(...)
@@ -82,15 +82,6 @@ function extend(class, extension)
         end
 
         return class
-    end
-end
-
-_TYPE = type
-function type(obj)    
-    if _TYPE(obj) == 'table' and obj.__type then
-        return obj.__type
-    else
-        return _TYPE(obj)
     end
 end
 

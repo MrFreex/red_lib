@@ -393,12 +393,10 @@ end
 local last_hook_id = -1
 
 local CallHooks = function(hook_table,...)
-    local args = {...}
-
+    local args = table.pack(...)
     for _,v in pairs(hook_table) do
-        local newTable = { table.unpack(args) }
-        table.insert(newTable, v[1])
-        v[2](table.unpack(newTable))
+        args[args.n + 1] = v[1]
+        v[2](table.unpack(args))
     end
 end
 
@@ -530,6 +528,7 @@ local BaseBag = class {
     end,
 
     syncState = function(self, state_index, state_value)
+        if self.no_sync then return end
         if IsDuplicityVersion() then
             Events.TriggerClient("sync_bag", -1, { self:getIdentity(), state_index, state_value }, "red_statebags")
         else
@@ -539,11 +538,19 @@ local BaseBag = class {
 }
 
 RedStateBags.GetBag = function(bag_type, bag_id)
+    local set_no_sync
+    if bag_type == "Entity" and not IsDuplicityVersion() then
+        local is_networked = NetworkGetEntityIsNetworked(bag_id)
+        bag_id = is_networked and NetworkGetNetworkIdFromEntity(bag_id) or bag_id
+        set_no_sync = not is_networked
+    end
+
     if Bags[bag_type][bag_id] then 
         return Bags[bag_type][bag_id]
     end
 
     Bags[bag_type][bag_id] = Bags[bag_type][bag_id] or BaseBag(bag_type, bag_id)
+    Bags[bag_type][bag_id].no_sync = set_no_sync
 
     return Bags[bag_type][bag_id]
 end

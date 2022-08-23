@@ -146,6 +146,7 @@ local Interaction = class {
         self.sub = subints
         self.cb = callback
         self.options = options or {}
+        print(self.id,self.where,self.sub,json.encode(self.cb),json.encode(self.options))
     end,
 
     subToWeb = function(self)
@@ -242,7 +243,8 @@ end
 function Interactions.Create(id, where, subints, func, options)
     options = options or {}
     options.resource = GetInvokingResource()
-    interactions.active[id] = Interaction({}, id, where, subints, func, options)
+    
+    interactions.active[id] = Interaction(id, where, subints, func, options)
 end
 
 function Interactions.Delete(id)
@@ -286,7 +288,6 @@ RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
 AddEventHandler("onResourceStop", function(res)
     function iter(t)
         for k,e in pairs(t) do
-            print(k,e, e.options.resource)
             if e.options.resource == res then
                 t[k] = nil
             end
