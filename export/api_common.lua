@@ -354,16 +354,21 @@ if GetCurrentResourceName() == "red_lib" and IsDuplicityVersion() then
     _G.BagsList = Bags
 end
 
-setmetatable(Bags, {
-    __call = function(self, bag_identification)
-        return Bags[bag_identification.type][bag_identification.id]
-    end
-})
+local function resetMeta()
+    setmetatable(Bags, {
+        __call = function(self, bag_identification)
+            return Bags[bag_identification.type][bag_identification.id]
+        end
+    })
+end
+
+resetMeta()
 
 
 if not IsDuplicityVersion() then
     Events.Register("sync_all", function(b)
         Bags = b
+        resetMeta()
         print("Sync all successful")
     end)
     print("Ask for sync all")
