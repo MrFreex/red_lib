@@ -146,7 +146,7 @@ local Interaction = class {
         self.sub = subints
         self.cb = callback
         self.options = options or {}
-        print(self.id,self.where,self.sub,json.encode(self.cb),json.encode(self.options))
+
     end,
 
     subToWeb = function(self)
@@ -165,7 +165,7 @@ local Interaction = class {
 }
 
 function Interactions.SubInt(id, label, icon)
-    return SubInt(self, id, label, icon)
+    return SubInt(id, label, icon)
 end
 
 local function push(tab, ints)
@@ -270,20 +270,17 @@ RegisterCommand("cInt2", function(p,a,r)
     end, { close = true })
 end)
 
-RegisterCommand("+openInt", function()
-    showHidden = true
-    UI.toggle(true)
+RegisterCommand("openInt", function()
+    showHidden = not showHidden
+    UI.toggle(showHidden)
+    if not showHidden then
+        SendNUIMessage({
+            manager = "closeActive"
+        })
+    end
 end)
 
-RegisterCommand("-openInt", function()
-    showHidden = false
-    UI.toggle(false)
-    SendNUIMessage({
-        manager = "closeActive"
-    })
-end)
-
-RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
+RegisterKeyMapping("openInt", "Interaction Menu", "keyboard", "LMENU")
 
 AddEventHandler("onResourceStop", function(res)
     function iter(t)

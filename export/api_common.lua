@@ -6,7 +6,7 @@ local Cache = {}
 
 --// Import Classify
 
-local function merge(...)
+function merge(...)
     local args = ({...})
     local merged = {}
 
@@ -350,6 +350,10 @@ local Bags = {
     Global = {}
 }
 
+if GetCurrentResourceName() == "red_lib" and IsDuplicityVersion() then
+    _G.BagsList = Bags
+end
+
 setmetatable(Bags, {
     __call = function(self, bag_identification)
         return Bags[bag_identification.type][bag_identification.id]
@@ -357,12 +361,28 @@ setmetatable(Bags, {
 })
 
 
+if not IsDuplicityVersion() then
+    Events.Register("sync_all", function(b)
+        Bags = b
+        print("Sync all successful")
+    end)
+    print("Ask for sync all")
+    Events.TriggerServer("sync_all", { GetCurrentResourceName() }, "red_statebags")
+end
 
-
-Events.Register("sync_bag", function(bag_identification, state_index, state_value) 
+Events.Register("sync_bag", function(bag_identification, state_index, state_value, old_value) 
     local bag = Bags(bag_identification) or RedStateBags.GetBag(bag_identification.type, bag_identification.id)
-    bag.state[state_index] = state_value
-    bag:triggerHooks(state_index,state_value)
+    
+
+    if type(state_index) == "table" then
+        for update_index, update_value in pairs(state_index) do
+            bag.state[update_index] = update_value
+            bag:triggerHooks(update_index,update_value,old_value)
+        end
+    else
+        bag.state[state_index] = state_value
+        bag:triggerHooks(state_index,state_value, old_value)
+    end
 end, "red_statebags")
 
 local GlobalHooks = {}
@@ -406,6 +426,7 @@ local BaseBag = class {
         self.id = bag_id
 
         self.state = {}
+        self.old_values = {}
 
         self.lastHookId = -1
         self.myHooks = {
@@ -424,8 +445,9 @@ local BaseBag = class {
         end, "red_statebags")
 
         local setStateFunction = function(me, k, v)
+            local old_value = me[k]
             rawset(me, k, v)
-            self:syncState(k, v)
+            self:syncState(k, v, old_value)
         end
 
         setmetatable(self.state, {
@@ -453,19 +475,19 @@ local BaseBag = class {
         return json.decode(json.encode(self.state))
     end,
 
-    triggerHooks = function(self, k, v)
+    triggerHooks = function(self, k, v, old_v)
         if GlobalHooks.all then
-            CallHooks(GlobalHooks.all, self, k, v)
+            CallHooks(GlobalHooks.all, self, k, v, old_v)
         end
 
         if GlobalHooks[self.__type] then
-            CallHooks(GlobalHooks[self.__type], self, k, v)
+            CallHooks(GlobalHooks[self.__type], self, k, v, old_v)
         end
 
-        CallHooks(self.myHooks.global, k, v)
+        CallHooks(self.myHooks.global, k, v, old_v)
 
         if self.myHooks.indexed[k] then
-            CallHooks(self.myHooks.indexed[k], v)
+            CallHooks(self.myHooks.indexed[k], v, old_v)
         end
     end,
 
@@ -518,6 +540,14 @@ local BaseBag = class {
         return false
     end,
 
+    transaction = function(self, obj)
+        if IsDuplicityVersion() then
+            Events.TriggerClient("sync_bag", -1, { self:getIdentity(), obj }, "red_statebags")
+        else
+            Events.TriggerServer("sync_bag_fc", { self:getIdentity(), obj }, "red_statebags")
+        end
+    end,
+
     getIdentity = function(self)
         return { id = self.id, type = self.__type }
     end,
@@ -527,21 +557,25 @@ local BaseBag = class {
         return identity.id == compare_to.id and identity.type == compare_to.type
     end,
 
-    syncState = function(self, state_index, state_value)
+    syncState = function(self, state_index, state_value, old_value)
         if self.no_sync then return end
         if IsDuplicityVersion() then
-            Events.TriggerClient("sync_bag", -1, { self:getIdentity(), state_index, state_value }, "red_statebags")
+            Events.Trigger("sync_bag_fc", { self:getIdentity(), state_index, state_value, old_value }, "red_statebags")
         else
-            Events.TriggerServer("sync_bag_fc", { self:getIdentity(), state_index, state_value }, "red_statebags")
+            Events.TriggerServer("sync_bag_fc", { self:getIdentity(), state_index, state_value, old_value }, "red_statebags")
         end
     end
 }
 
 RedStateBags.GetBag = function(bag_type, bag_id)
     local set_no_sync
+    local orig_bag_id
     if bag_type == "Entity" and not IsDuplicityVersion() then
-        local is_networked = NetworkGetEntityIsNetworked(bag_id)
-        bag_id = is_networked and NetworkGetNetworkIdFromEntity(bag_id) or bag_id
+        orig_bag_id = bag_id
+        local exists_with_net = NetworkDoesEntityExistWithNetworkId(tonumber(bag_id))
+        local is_networked = (exists_with_net) or NetworkGetEntityIsNetworked(bag_id)
+
+        bag_id = exists_with_net and bag_id or (is_networked and NetworkGetNetworkIdFromEntity(tonumber(bag_id)) or bag_id)
         set_no_sync = not is_networked
     end
 
@@ -648,23 +682,38 @@ end
 
 
 local Active = {}
+local last_thread_id = 0
 
 function Do(cb,sleep,after)
     CreateThread(function()
-        local tid = GetCurrentThreadId()
+        last_thread_id = last_thread_id + 1
+        local tid = last_thread_id
         local KillMe = function()
             Active[tid] = false
         end
         Active[tid] = true
         while Active[tid] do
-            cb(tid,KillMe)
+            cb(KillMe)
             Citizen.Wait(sleep or 0)
         end
 
-        after()
+        if after then after() end
     end)
 end
 
-function Kill(threadId)
-    TerminateThread(threadId)
+function table.where(tab, index, value)
+    for k,e in pairs(tab) do
+        if type(e) == "table" and e[index] == value then
+            return e,k
+        end
+    end
+
+    return nil
 end
+
+if not IsDuplicityVersion() then
+    function Kill(threadId)
+        TerminateThread(threadId)
+    end
+end
+
