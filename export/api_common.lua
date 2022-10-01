@@ -367,8 +367,15 @@ resetMeta()
 
 if not IsDuplicityVersion() then
     Events.Register("sync_all", function(b)
-        Bags = b
-        resetMeta()
+        for k,bag_data in pairs(b) do
+            local bag = RedStateBags.GetBag(bag_data.__type,bag_data.id)
+            bag_data.state.set = nil
+            for j,i in pairs(bag_data.state) do
+                bag.state[j] = i
+            end
+
+            bag.no_sync = bag_data.no_sync
+        end
         print("Sync all successful")
     end)
     print("Ask for sync all")

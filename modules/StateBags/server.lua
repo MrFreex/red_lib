@@ -12,5 +12,18 @@ end, "red_statebags")
 
 Events.Register("sync_all", function(res)
     print("Sync all to", source, res)
-    Events.TriggerClient("sync_all", source, { BagsList }, res)
+    local sendBags = {}
+
+    for k,e in pairs(BagsList) do
+        for j,i in pairs(e) do
+            table.insert(sendBags, {
+                __type = i.__type,
+                id = i.id,
+                no_sync = i.no_sync,
+                state = i.state
+            })
+        end
+    end
+
+    Events.TriggerClient("sync_all", source, { sendBags }, res)
 end, "red_statebags")
