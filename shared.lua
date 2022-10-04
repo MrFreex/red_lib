@@ -85,9 +85,27 @@ function extend(class, extension)
     end
 end
 
+local _old_type = type
+
+_G.type = function(subject)
+    local check_type = function(subj)
+        if _old_type(subj) == "table" then
+            return subj.__type or "table"
+        else return _old_type(subj) end
+    end
+
+    local no_error, ret_value = pcall(check_type, subject)
+    if not no_error then --// happens when trying to index a funcref
+        return "funcref"
+    else
+        return ret_value
+    end
+end
+
 --//End
 
 CreateThread(function()
     local Events = Common("Events")
     Events.Trigger("loaded", {})
 end)
+

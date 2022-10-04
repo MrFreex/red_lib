@@ -6,7 +6,7 @@ local Cache = {}
 
 --// Import Classify
 
-function merge(...)
+local function merge(...)
     local args = ({...})
     local merged = {}
 
@@ -19,7 +19,7 @@ function merge(...)
 end
 
 function class(obj)
-    obj.__type = "uClass"
+    obj.__type = obj.__type or "rClass"
     
     local class = {
         -- metamethods
@@ -50,15 +50,23 @@ function class(obj)
         __call = obj.__call or obj._Call or nil,
     }
 
-    return function(...)
-        local class = setmetatable(merge({},obj), class)
+    local tab = {}
 
-        if class._Init then
-            class:_Init(...)
+    return setmetatable(tab, {
+        __call = function(self, ...)
+            local class = setmetatable(merge({},obj), class)
+    
+            if class._Init then
+                class:_Init(...)
+            end
+    
+            return class
+        end,
+
+        __index = function(s, index)
+            return obj[index]
         end
-
-        return class
-    end
+    }) 
 end
 
 function extend(class, extension)
@@ -76,6 +84,23 @@ function extend(class, extension)
         end
 
         return class
+    end
+end
+
+local _old_type = type
+
+_G.type = function(subject)
+    local check_type = function(subj)
+        if _old_type(subj) == "table" then
+            return subj.__type or "table"
+        else return _old_type(subj) end
+    end
+
+    local no_error, ret_value = pcall(check_type, subject)
+    if not no_error then --// happens when trying to index a funcref
+        return "funcref"
+    else
+        return ret_value
     end
 end
 
