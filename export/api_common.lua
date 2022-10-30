@@ -6,7 +6,7 @@ local Cache = {}
 
 --// Import Classify
 
-local function merge(...)
+function merge(...)
     local args = ({...})
     local merged = {}
 
