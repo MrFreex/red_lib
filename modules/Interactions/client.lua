@@ -256,7 +256,7 @@ RegisterCommand("cInt", function(p,a,r)
     Interactions.Create("test", PlayerPedId(), {
         Interactions.SubInt("test2", "test", "faCar")
     }, function()
-        print("test")
+
     end, { close = true })
 end)
 
@@ -266,7 +266,7 @@ RegisterCommand("cInt2", function(p,a,r)
         Interactions.SubInt("test3", "test", "faCar"),
         Interactions.SubInt("test4", "test", "faCar")
     }, function()
-        print("test")
+
     end, { close = true })
 end)
 

@@ -11,7 +11,7 @@ Events.Register("cleanState_fc", function(bag_identification)
 end, "red_statebags")
 
 Events.Register("sync_all", function(res)
-    print("Sync all to", source, res)
+
     local sendBags = {}
 
     for k,e in pairs(BagsList) do
