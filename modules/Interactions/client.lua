@@ -250,6 +250,7 @@ end
 function Interactions.Delete(id)
     interactions.active[id] = nil
     interactions.drawn[id] = nil
+    interactions.hidden[id] = nil
 end
 
 RegisterCommand("cInt", function(p,a,r)
