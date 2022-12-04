@@ -14,8 +14,8 @@ body {
 
 
 :root {
-  --secondary : #fff;
-  --dotColor: #E70E55;
+  --secondary : #E70E55;
+  --dotColor: #191919;
   --textBorder: none;
-  --main: #191919;
+  --main: #E70E55;
 }
