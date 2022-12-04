@@ -232,7 +232,7 @@ local function genPositions()
 
     return positions
 end
-
+--
 function Interactions.PosUpdate()
     SendNUIMessage({
         manager = "positions",
