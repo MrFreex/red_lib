@@ -43,6 +43,11 @@ CreateThread(function()
         end
         cb("{}")
     end)
+
+    UI.listen("closeInts", function(data,cb)
+        openClose()
+        cb("{}")
+    end)
 end)
 
 local function parsePos(int)
@@ -282,9 +287,8 @@ function openClose()
 end
 
 RegisterCommand("+openInt", openClose)
-RegisterCommand("-openInt", openClose)
 
-RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
+RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "g")
 
 AddEventHandler("onResourceStop", function(res)
     function iter(t)
