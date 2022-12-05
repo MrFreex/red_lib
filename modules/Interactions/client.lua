@@ -271,7 +271,7 @@ RegisterCommand("cInt2", function(p,a,r)
     end, { close = true })
 end)
 
-RegisterCommand("openInt", function()
+function openClose()
     showHidden = not showHidden
     UI.toggle(showHidden)
     if not showHidden then
@@ -279,9 +279,12 @@ RegisterCommand("openInt", function()
             manager = "closeActive"
         })
     end
-end)
+end
 
-RegisterKeyMapping("openInt", "Interaction Menu", "keyboard", "LMENU")
+RegisterCommand("+openInt", openClose)
+RegisterCommand("-openInt", openClose)
+
+RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
 
 AddEventHandler("onResourceStop", function(res)
     function iter(t)
