@@ -126,11 +126,14 @@ const Interactions = (props : InteractionsProps) => {
             }
         })
 
-        window.addEventListener("keyup", (ev) => {
+        const close = (ev) => {
             if (ev.key === "g") {
                 Five.toFivem("closeInts", {})
             }
-        })
+        }
+
+        window.addEventListener("keyup", close)
+        window.addEventListener("keydown", close)
     }, [])
 
     return <div style={{...props.style, display: visible ? "block" : "none"}} className={Style.main}>
