@@ -610,7 +610,11 @@ RedStateBags.GetBag = function(bag_type, bag_id)
     if bag_type == "Entity" and not IsDuplicityVersion() then
         orig_bag_id = bag_id
         local exists_with_net = NetworkDoesEntityExistWithNetworkId(tonumber(bag_id))
-        print(bag_id)
+        
+        if not exists_with_net then
+            print(bag_id)
+        end
+
         local is_networked = (exists_with_net) or NetworkGetEntityIsNetworked(bag_id)
 
         bag_id = exists_with_net and bag_id or (is_networked and NetworkGetNetworkIdFromEntity(tonumber(bag_id)) or bag_id)
