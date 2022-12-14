@@ -32,6 +32,8 @@ CreateThread(function()
             manager = "toggle",
             toggle = true
         })
+
+        
     end)
 
     UI.listen("interaction", function(data,cb)
@@ -278,11 +280,21 @@ end)
 
 function openClose()
     showHidden = not showHidden
+    
     UI.toggle(showHidden)
     if not showHidden then
         SendNUIMessage({
             manager = "closeActive"
         })
+    else
+        CreateThread(function()
+            while showHidden do
+                if not IsNuiFocused() then
+                    SetNuiFocus(true,true)
+                end
+                Wait(200)
+            end
+        end)
     end
 end
 
