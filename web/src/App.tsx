@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import FiveManager from './fiveManager'
+import * as FiveManager from './fiveManager'
 
 import { Interactions } from './views/Interactions';
 

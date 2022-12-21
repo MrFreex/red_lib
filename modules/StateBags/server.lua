@@ -1,51 +1,29 @@
 local Events = Common("Events")
 
-local Bags = {
-    Player = {},
-    Entity = {},
-    Global = {}
-}
+Events.Register("sync_bag_fc", function(bag_identification, state_index, state_value, old_value)
+    Events.TriggerClient("sync_bag", -1, { bag_identification, state_index, state_value, old_value }, "red_statebags")
+    Events.Trigger("sync_bag", { bag_identification, state_index, state_value, old_value }, "red_statebags")
+end, "red_statebags")
 
-local Bag = class {
-    _Init = function(self, id, t)
-        self.__type = t
-        self.state = {}
-        self.state.set = function(me, k, v)
-            me[k] = v
-            checkForCallbacks(self, k, v)
-            Events.TriggerClient("syncBag", -1, { self, k, v, 0 })
+Events.Register("cleanState_fc", function(bag_identification)
+    Events.TriggerClient("cleanState", -1, { bag_identification }, "red_statebags")
+    Events.Trigger("cleanState", { bag_identification }, "red_statebags")
+end, "red_statebags")
+
+Events.Register("sync_all", function(res)
+
+    local sendBags = {}
+
+    for k,e in pairs(BagsList) do
+        for j,i in pairs(e) do
+            table.insert(sendBags, {
+                __type = i.__type,
+                id = i.id,
+                no_sync = i.no_sync,
+                state = i.state
+            })
         end
-
-        self.id = id
-    end
-}
-
-CreateThread(function()
-    Bags.Global[1] = Bag({}, 1, "Global")
-end)
-
-function getBag(t, id)
-    if t == nil and id == nil then
-        return Bags.Global[1]
     end
 
-    if not Bags[t][id] then
-        Bags[t][id] = Bag({}, id, t)
-    end
-
-    return Bags[t][id]
-end
-
-exports("Bags", function()
-    return getBag
-end)
-
-Events.Register("requestBags", function()
-    Events.TriggerClient("initialSync", source, { Bags })
-end)
-
-Events.Register("syncBag", function(bag, k, v)
-    checkForCallbacks(bag, k, v)
-    getBag(type(bag), bag.id).state[k] = v
-    Events.TriggerClient("syncBag", -1, { bag, k, v, source })
-end)
+    Events.TriggerClient("sync_all", source, { sendBags }, res)
+end, "red_statebags")

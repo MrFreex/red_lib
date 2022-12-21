@@ -176,7 +176,7 @@ async = Citizen.CreateThread
 local active = {}
 
 Anims.stop = function(ped)
-    ped = ped or uPlayer.ped
+    ped = ped or redPlayer.ped
     if not active[ped] then
         return false
     end
@@ -190,7 +190,7 @@ Anims.Allow = {0,1,2,3,4,5,6}
 
 Anims.play = function(dict, name, params, duration, prevent, block, ped)
     if not ped then
-        ped = uPlayer.ped
+        ped = redPlayer.ped
     end
 
     local flags = 0

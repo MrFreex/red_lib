@@ -56,8 +56,8 @@ function class(obj)
         __call = obj.__call or obj._Call or nil,
     }
 
-    return function(options, ...)
-        local class = setmetatable(options and merge(obj, options) or obj, class)
+    return function(...)
+        local class = setmetatable(merge({},obj), class)
 
         if class._Init then
             class:_Init(...)
@@ -85,12 +85,20 @@ function extend(class, extension)
     end
 end
 
-_TYPE = type
-function type(obj)    
-    if _TYPE(obj) == 'table' and obj.__type then
-        return obj.__type
+local _old_type = type
+
+_G.type = function(subject)
+    local check_type = function(subj)
+        if _old_type(subj) == "table" then
+            return subj.__type or "table"
+        else return _old_type(subj) end
+    end
+
+    local no_error, ret_value = pcall(check_type, subject)
+    if not no_error then --// happens when trying to index a funcref
+        return "funcref"
     else
-        return _TYPE(obj)
+        return ret_value
     end
 end
 
@@ -100,3 +108,4 @@ CreateThread(function()
     local Events = Common("Events")
     Events.Trigger("loaded", {})
 end)
+

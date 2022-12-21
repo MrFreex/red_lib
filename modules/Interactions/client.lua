@@ -32,6 +32,8 @@ CreateThread(function()
             manager = "toggle",
             toggle = true
         })
+
+        
     end)
 
     UI.listen("interaction", function(data,cb)
@@ -41,6 +43,11 @@ CreateThread(function()
         if (t.options.close) then
             SetNuiFocus(false, false)
         end
+        cb("{}")
+    end)
+
+    UI.listen("closeInts", function(data,cb)
+        openClose()
         cb("{}")
     end)
 end)
@@ -146,6 +153,7 @@ local Interaction = class {
         self.sub = subints
         self.cb = callback
         self.options = options or {}
+
     end,
 
     subToWeb = function(self)
@@ -164,7 +172,7 @@ local Interaction = class {
 }
 
 function Interactions.SubInt(id, label, icon)
-    return SubInt(self, id, label, icon)
+    return SubInt(id, label, icon)
 end
 
 local function push(tab, ints)
@@ -231,7 +239,7 @@ local function genPositions()
 
     return positions
 end
-
+--
 function Interactions.PosUpdate()
     SendNUIMessage({
         manager = "positions",
@@ -242,19 +250,21 @@ end
 function Interactions.Create(id, where, subints, func, options)
     options = options or {}
     options.resource = GetInvokingResource()
-    interactions.active[id] = Interaction({}, id, where, subints, func, options)
+    
+    interactions.active[id] = Interaction(id, where, subints, func, options)
 end
 
 function Interactions.Delete(id)
     interactions.active[id] = nil
     interactions.drawn[id] = nil
+    interactions.hidden[id] = nil
 end
 
 RegisterCommand("cInt", function(p,a,r)
     Interactions.Create("test", PlayerPedId(), {
         Interactions.SubInt("test2", "test", "faCar")
     }, function()
-        print("test")
+
     end, { close = true })
 end)
 
@@ -264,29 +274,37 @@ RegisterCommand("cInt2", function(p,a,r)
         Interactions.SubInt("test3", "test", "faCar"),
         Interactions.SubInt("test4", "test", "faCar")
     }, function()
-        print("test")
+
     end, { close = true })
 end)
 
-RegisterCommand("+openInt", function()
-    showHidden = true
-    UI.toggle(true)
-end)
+function openClose()
+    showHidden = not showHidden
+    
+    UI.toggle(showHidden)
+    if not showHidden then
+        SendNUIMessage({
+            manager = "closeActive"
+        })
+    else
+        CreateThread(function()
+            while showHidden do
+                if not IsNuiFocused() then
+                    SetNuiFocus(true,true)
+                end
+                Wait(200)
+            end
+        end)
+    end
+end
 
-RegisterCommand("-openInt", function()
-    showHidden = false
-    UI.toggle(false)
-    SendNUIMessage({
-        manager = "closeActive"
-    })
-end)
+RegisterCommand("+openInt", openClose)
 
-RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "LMENU")
+RegisterKeyMapping("+openInt", "Interaction Menu", "keyboard", "g")
 
 AddEventHandler("onResourceStop", function(res)
     function iter(t)
         for k,e in pairs(t) do
-            print(k,e, e.options.resource)
             if e.options.resource == res then
                 t[k] = nil
             end
