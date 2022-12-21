@@ -1,5 +1,5 @@
 import Style from './css/Interactions.module.css'
-import Five from '../fiveManager'
+import * as Five from '../fiveManager'
 import { useEffect, useState, createRef, cloneElement, Key } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import * as Icons from '@fortawesome/free-solid-svg-icons'
@@ -125,6 +125,14 @@ const Interactions = (props : InteractionsProps) => {
                 hideActive()
             }
         })
+
+        const close = (ev : KeyboardEvent) => {
+            if (ev.key === "g") {
+                Five.toFivem("closeInts", {})
+            }
+        }
+
+        window.addEventListener("keyup", (e) => {console.log("up");close(e)})
     }, [])
 
     return <div style={{...props.style, display: visible ? "block" : "none"}} className={Style.main}>
