@@ -77,12 +77,18 @@ end
     Registers an event with the specified name. Automatically joining, if present, the resource name.
 ]]
 Events.Register = function(name, callback, resname, notNet)
+    local strict = false -- Prevents other resources from triggering the event
+    if resname == true then
+        strict = true
+        resname = nil
+    end
+
     name = repName(name, resname)
 
     if notNet then
-        return AddEventHandler(name, callback)
+        return AddEventHandler(name, function(...) if strict and GetInvokingResource() ~= GetCurrentResourceName() then return end return callback(...) end)
     else
-        return RegisterNetEvent(name, callback)
+        return RegisterNetEvent(name, function(...) if strict and GetInvokingResource() ~= GetCurrentResourceName() then return end return callback(...) end)
     end
 end
 
