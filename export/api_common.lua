@@ -385,7 +385,7 @@ common.Jobs.isEmergency = function(job)
     return common.Arrays.find(policeJobs, job) or common.Arrays.find(emergency, job)
 end
 
---[[
+
 
 local RedStateBags = {}
 
