@@ -59,8 +59,10 @@ function setMeta(tab, parent)
                 return rawset(t, index, value)
             end
 
-            rawset(t,index,value)
+            local old_v = rawget(t,index)
 
+            
+            rawset(t,index,value)
             
             local indexes, topmost
             if t() ~= nil then
@@ -68,6 +70,13 @@ function setMeta(tab, parent)
                 table.insert(indexes, index)
             else indexes = { index } topmost = t end
             
+            local ind_string = encodeIndexes(indexes)
+            for k,e in pairs(Data.Hooks) do
+                if (e.index and ((#indexes == 1 and indexes[1] == e.index) or ind_string:find(e.index) == 1)) or not e.index then
+                    e.cb(ind_string, value, old_v)
+                end
+            end
+
             Events.TriggerServer("sync-shared-table", { topmost.__id, indexes, value })
         end,
 
@@ -124,13 +133,15 @@ Events.Register("sync-shared-table", function(id, indexes, value)
         t = t[indexes[i]]
     end
 
+    local old_v = rawget(t,indexes[#indexes])
+
     rawset(t, indexes[#indexes], value)
 
     local ind_string = encodeIndexes(indexes)
     
     for k,e in pairs(Data.Hooks) do
         if (e.index and ((#indexes == 1 and indexes[1] == e.index) or ind_string:find(e.index) == 1)) or not e.index then
-            e.cb(ind_string, value)
+            e.cb(ind_string, value, old_v)
         end
     end
     

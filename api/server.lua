@@ -71,9 +71,11 @@ Events.Register("sync-shared-table", function(id, indexes, value)
         t = t[indexes[i]]
     end
 
+    local old_v = rawget(t, indexes[#indexes])
+
     rawset(t, indexes[#indexes], value)
 
-    callHooks(indexes, id, value)
+    callHooks(indexes, id, value, old_v)
 
     Events.TriggerClient("sync-shared-table", "except:" .. pid, { id, indexes, value })
 end)
@@ -145,6 +147,8 @@ function Data.Sync(shared_table, id, restricted)
                     return rawset(t, index, value)
                 end
 
+                local old_v = rawget(t, index)
+
                 rawset(t,index,value)
 
                 local indexes
@@ -154,7 +158,7 @@ function Data.Sync(shared_table, id, restricted)
                 else indexes = { index } end
 
                 Events.TriggerClient("sync-shared-table", -1, { id, indexes, value })
-                callHooks(indexes, id, value)
+                callHooks(indexes, id, value, old_v)
 
             end,
 
