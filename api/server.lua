@@ -1,14 +1,94 @@
-Data = {}
-
 local Events = Common("Events")
 local Arrays = Common("Arrays")
 
+
+
+-- Dev Stuff
+
+Dev = {}
+
+--[[
+    Used to know wheter a player is marked as developer or not
+]]
+function Dev.is(who)
+    local identifiers = exports["red_lib"]:Identifiers(who)
+    for k,e in pairs(Config.debug.identifiers) do
+        local id_type = string.split(e, ":", true)
+
+        if identifiers[id_type] == e:gsub(id_type .. ":", "") then
+            return true
+        end
+    end
+
+    return false
+end
+
+--[[
+    Registers Dev-only commands, for testing purposes
+]]
+function Dev.RegisterCommand(command_name, callback)
+    return RegisterCommand(command_name, function(pid, args, r)
+        if pid == 0 or Dev.is(pid) then
+            callback(pid,args,r)
+        end
+    end)
+end
+
+--
+
+local last_hook = 0
+
+Data = {}
 Data.Synced = {}
+Data.Hooks  = {}
 
 Events.Register("client-ready", function()
     
     Events.TriggerClient("sync-all-tables", source, { Data.Synced })
 end)
+
+local callHooks = function(indexes, id, value)
+    local ind_string = encodeIndexes(indexes)
+    
+    for k,e in pairs(Data.Hooks) do
+        if e.id == id and ((e.index and ((#indexes == 1 and indexes[1] == e.index) or ind_string:find(e.index) == 1)) or not e.index) then
+            e.cb(ind_string, value)
+        end
+    end
+end
+
+Events.Register("sync-shared-table", function(id, indexes, value)
+    local pid = source
+
+    local t = Data.Synced[id]
+
+    if (not t) or t.__restricted then return end
+
+    for i=1, (#indexes-1) do
+        if not t[indexes[i]] then
+            t[indexes[i]] = {}
+        end
+        t = t[indexes[i]]
+    end
+
+    rawset(t, indexes[#indexes], value)
+
+    callHooks(indexes, id, value)
+
+    Events.TriggerClient("sync-shared-table", "except:" .. pid, { id, indexes, value })
+end)
+
+function Data.Hook(cb, id, index)
+    last_hook = last_hook + 1
+
+    Data.Hooks[tostring(last_hook)] = {
+        cb = cb,
+        id = id,
+        index = (index ~= nil and type(index) ~= "string") and encodeIndexes(index) or index
+    }
+    
+    return tostring(last_hook)
+end
 
 function Data.Sync(shared_table, id, restricted)
     if restricted == nil then restricted = false end
@@ -49,7 +129,7 @@ function Data.Sync(shared_table, id, restricted)
             end
         end
 
-        Events.TriggerClient("new-shared-table", -1, { shared_table, id, restricted })
+        
         
         return indexes
     end
@@ -66,14 +146,15 @@ function Data.Sync(shared_table, id, restricted)
                 end
 
                 rawset(t,index,value)
-                
+
+                local indexes
                 if t() ~= nil then
-                    local indexes = getPath(t)
+                    indexes = getPath(t)
                     table.insert(indexes, index)
+                else indexes = { index } end
 
-                    Events.TriggerClient("sync-shared-table", -1, { id, indexes, value })
-                end
-
+                Events.TriggerClient("sync-shared-table", -1, { id, indexes, value })
+                callHooks(indexes, id, value)
 
             end,
 
@@ -86,15 +167,19 @@ function Data.Sync(shared_table, id, restricted)
     setMeta(shared_table)
 
     Data.Synced[id] = shared_table
-
+    Events.TriggerClient("new-shared-table", -1, { shared_table, id, restricted })
+    
     return shared_table
 end
 
-local t = Data.Sync({}, "patrols")
-
-t.table1 = {}
-
-t.table1.a = {}
-t.table1.a.b = {}
-t.table1.a.b.c = {}
-t.table1.a.b.c.d = "A"
+Dev.RegisterCommand("test", function(p,args)
+    if args[1] == "st" then
+        local calls = Data.Sync({}, "calls")
+        Data.Hook(function(...) print("Hook", ...)  end, "calls", { "a","c" })
+        SetTimeout(1000, function()
+            calls.a = {}
+            calls.a.b = {}
+            calls.a.b.c = "a"
+        end)
+    end
+end)

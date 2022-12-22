@@ -5,7 +5,7 @@ Config = {
 
     debug = {
         identifiers = {
-            ""
+            "discord:338319779641294848"
         }
     }
 }

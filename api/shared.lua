@@ -42,7 +42,31 @@ end
 
 -- Libraries
 
+function encodeIndexes(indexes)
+    local str = ""
+    for k,e in pairs(indexes) do
+        str = str .. ":" .. e
+    end
+    
+    return str:sub(2)
+end
 
+function string.split (inputstr, sep, as_multiple)
+    if sep == nil then
+        sep = "%s"
+    end
+
+    local t={}
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+
+    if as_multiple then
+        return table.unpack(t)
+    end
+
+    return t
+end
 
 function table.merge(t, separator)
     local s = ""

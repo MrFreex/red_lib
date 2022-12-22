@@ -161,6 +161,25 @@ if IsDuplicityVersion() then
     Events.TriggerClient = function (name, source, params, resname)
         name = repName(name, resname)
 
+        if type(source) == "table" then
+            for k,e in pairs(source) do
+                Events.TriggerClient(name, e, params, resname)
+            end
+
+            return
+        elseif type(source) == "string" and source:find("except:") then
+            local rep = source:gsub("except:", "")
+            local except = tonumber(rep, 10)
+            local players = GetPlayers()
+            for i=1, #players do
+                if i ~= except then
+                    Events.TriggerClient(name, players[i], params, resname)
+                end
+            end
+
+            return
+        end
+
         return TriggerClientEvent(name, source, table.unpack(params))
     end
 else
@@ -179,18 +198,13 @@ end
     Registers an event with the specified name. Automatically joining, if present, the resource name.
 ]]
 Events.Register = function(name, callback, resname, notNet)
-    local strict = false -- Prevents other resources from triggering the event
-    if resname == true then
-        strict = true
-        resname = nil
-    end
 
     name = repName(name, resname)
 
     if notNet then
-        return AddEventHandler(name, function(...) if strict and GetInvokingResource() ~= GetCurrentResourceName() then return end return callback(...) end)
+        return AddEventHandler(name, function(...) return callback(...) end)
     else
-        return RegisterNetEvent(name, function(...) if strict and GetInvokingResource() ~= GetCurrentResourceName() then return end return callback(...) end)
+        return RegisterNetEvent(name, function(...) return callback(...) end)
     end
 end
 
