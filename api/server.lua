@@ -9,7 +9,7 @@ Dev = {}
 
 --[[
     Used to know wheter a player is marked as developer or not
-]]
+--]]
 function Dev.is(who)
     local identifiers = exports["red_lib"]:Identifiers(who)
     for k,e in pairs(Config.debug.identifiers) do
@@ -25,7 +25,7 @@ end
 
 --[[
     Registers Dev-only commands, for testing purposes
-]]
+--]]
 function Dev.RegisterCommand(command_name, callback)
     return RegisterCommand(command_name, function(pid, args, r)
         if pid == 0 or Dev.is(pid) then
@@ -160,6 +160,18 @@ function Data.Sync(shared_table, id, restricted)
 
             __call = function()
                 return parent or id
+            end,
+
+            __len = function()
+                local n = {}
+
+                for k,e in pairs(tab) do
+                    if k:find("__") ~= 1 then
+                        n[k] = e
+                    end 
+                end
+
+                return n
             end
         })
     end

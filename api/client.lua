@@ -73,6 +73,18 @@ function setMeta(tab, parent)
 
         __call = function()
             return parent or id
+        end,
+
+        __len = function()
+            local n = {}
+
+            for k,e in pairs(tab) do
+                if k:find("__") ~= 1 then
+                    n[k] = e
+                end 
+            end
+
+            return n
         end
     })
 end
