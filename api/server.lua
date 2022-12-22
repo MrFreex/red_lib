@@ -60,7 +60,7 @@ end
 Events.Register("sync-shared-table", function(id, indexes, value)
     local pid = source
 
-    local t = Data.Synced[id]
+    local t = Data.Synced[id].__original
 
     if (not t) or t.__restricted then return end
 
@@ -71,9 +71,9 @@ Events.Register("sync-shared-table", function(id, indexes, value)
         t = t[indexes[i]]
     end
 
-    local old_v = rawget(t, indexes[#indexes])
+    local old_v = rawget(t.__original, indexes[#indexes])
 
-    rawset(t, indexes[#indexes], value)
+    rawset(t.__original, indexes[#indexes], value)
 
     callHooks(indexes, id, value, old_v)
 
@@ -106,7 +106,7 @@ function Data.Sync(shared_table, id, restricted)
         table.insert(parents, t)
         while
             pcall(function() 
-
+                
                 if type(f) == "shared_table" then -- Reached main table's id
                     return error("break") 
                 end  
@@ -123,7 +123,7 @@ function Data.Sync(shared_table, id, restricted)
         for i=(#parents-1), 1, -1 do
             local n = parents[i + 1]
             
-            for k,e in pairs(n) do
+            for k,e in pairs(n.__original) do
                 if e == parents[i] then
                     table.insert(indexes,k)
                     break
@@ -136,27 +136,35 @@ function Data.Sync(shared_table, id, restricted)
         return indexes
     end
 
+    
+
     local setMeta
     setMeta = function(tab, parent)
+        local proxy_t = {
+            __original = tab
+        }
 
-        return setmetatable(tab, {
+        return setmetatable(proxy_t, {
+
+            __index = function(t, k)
+                return rawget(tab,k)
+            end,
             
             __newindex = function(t, index, value)
                 if type(value) == "table" then
-                    setMeta(value, t)
-                    return rawset(t, index, value)
+                    local ass = setMeta(value, t)
+                    return rawset(tab, index, ass)
                 end
 
                 local old_v = rawget(t, index)
-
-                rawset(t,index,value)
+                rawset(tab,index,value)
 
                 local indexes
                 if t() ~= nil then
                     indexes = getPath(t)
                     table.insert(indexes, index)
                 else indexes = { index } end
-
+                
                 Events.TriggerClient("sync-shared-table", -1, { id, indexes, value })
                 callHooks(indexes, id, value, old_v)
 
@@ -180,11 +188,11 @@ function Data.Sync(shared_table, id, restricted)
         })
     end
     
-    setMeta(shared_table)
+    shared_table = setMeta(shared_table)
 
     Data.Synced[id] = shared_table
-    Events.TriggerClient("new-shared-table", -1, { shared_table, id, restricted })
-    
+    Events.TriggerClient("new-shared-table", -1, { shared_table.__original, id, restricted })
+
     return shared_table
 end
 
@@ -196,6 +204,7 @@ Dev.RegisterCommand("test", function(p,args)
             calls.a = {}
             calls.a.b = {}
             calls.a.b.c = "a"
+            calls.a.b.c = "b"
         end)
     end
 end)

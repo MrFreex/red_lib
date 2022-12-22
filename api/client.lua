@@ -50,19 +50,21 @@ local getPath = function(t) -- Returns a list of indexes needed to reach the tab
 end
 
 function setMeta(tab, parent)
-    return setmetatable(tab, {
+    local proxy_table = {
+        __original = tab
+    }
+    
+    return setmetatable(proxy_table, {
         
         __newindex = function(t, index, value)
-            if type(value) == "table" then
-                setMeta(value, t)
-                
-                return rawset(t, index, value)
+            if type(value) == "table" then                
+                return rawset(tab, index, setMeta(value, t))
             end
 
-            local old_v = rawget(t,index)
+            local old_v = rawget(tab,index)
 
             
-            rawset(t,index,value)
+            rawset(tab,index,value)
             
             local indexes, topmost
             if t() ~= nil then
@@ -99,8 +101,7 @@ function setMeta(tab, parent)
 end
 
 Events.Register("new-shared-table", function(shared_table, id, restricted)
-    setMeta(shared_table)
-    Data.Synced[id] = shared_table
+    Data.Synced[id] = setMeta(shared_table)
 end)
 
 function Data.Hook(cb, id, index)
@@ -120,8 +121,8 @@ Data.Hook(function(...)
 end, "calls", {"a"})
 
 Events.Register("sync-shared-table", function(id, indexes, value)
-    local t = Data.Synced[id]  
-
+    local t = Data.Synced[id].__original
+    
     if not t then return end -- Probably waiting for sync-all-tables to occur
 
     local i
@@ -138,6 +139,7 @@ Events.Register("sync-shared-table", function(id, indexes, value)
     rawset(t, indexes[#indexes], value)
 
     local ind_string = encodeIndexes(indexes)
+
     
     for k,e in pairs(Data.Hooks) do
         if (e.index and ((#indexes == 1 and indexes[1] == e.index) or ind_string:find(e.index) == 1)) or not e.index then
