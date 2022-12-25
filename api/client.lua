@@ -157,3 +157,26 @@ end)
 CreateThread(function()
     Events.TriggerServer("client-ready", {})
 end)
+
+-- * Callbacks
+
+Callbacks = {}
+
+local clock_multip = 0
+
+function Callbacks.Trigger(name, cb, ...)
+    -- ! System thought to allow multiple sync executed events
+    local timer = (GetGameTimer() * 10) + clock_multip
+    clock_multip = clock_multip + 1
+    SetTimeout(1, function() clock_multip = 0 end)
+    
+    local ev_handle
+    ev_handle = Events.Register("callbacks::" .. name .. "::" .. timer, function(...)
+        cb(...)
+        RemoveEventHandler(ev_handle)
+    end)
+    
+    local args = table.pack(...)
+    
+    Events.TriggerServer("callbacks::" .. name, { timer, args })
+end

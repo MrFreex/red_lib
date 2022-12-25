@@ -149,7 +149,7 @@ end
 Events.Trigger = function(name, params, resname)
     name = repName(name, resname)
 
-    return TriggerEvent(name, table.unpack(params))
+    return TriggerEvent(name, table.unpack(params, 1, params.n))
 end
 
 
@@ -180,7 +180,7 @@ if IsDuplicityVersion() then
             return
         end
 
-        return TriggerClientEvent(name, source, table.unpack(params))
+        return TriggerClientEvent(name, source, table.unpack(params, 1, params.n))
     end
 else
 
@@ -189,8 +189,8 @@ else
     ]]--
     Events.TriggerServer = function(name, params, resname)
         name = repName(name, resname)
-
-        return TriggerServerEvent(name, table.unpack(params))
+        
+        return TriggerServerEvent(name, table.unpack(params, 1, params.n))
     end
 end
 

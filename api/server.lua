@@ -93,6 +93,9 @@ function Data.Hook(cb, id, index)
 end
 
 function Data.Sync(shared_table, id, restricted)
+    if id and Data.Synced[id] then
+        return Data.Synced[id]
+    end
     if restricted == nil then restricted = false end
 
     shared_table.__type = "shared_table"
@@ -207,4 +210,26 @@ Dev.RegisterCommand("test", function(p,args)
             calls.a.b.c = "b"
         end)
     end
+end)
+
+-- * Callbacks
+
+Callbacks = {}
+
+function Callbacks.Register(name, handler, is_async)
+    Events.Register("callbacks::".. name, function(caller_id, args)
+        local client = source
+
+        local ret = table.pack(handler(table.unpack(args, 1, args.n)))
+
+        if is_async then -- ? Is handler returning a promise?
+            ret = table.pack(Citizen.Await(ret[1])) -- ! Wait for it to be solved
+        end
+
+        Events.TriggerClient("callbacks::" .. name .. "::" .. caller_id, client, ret)
+    end)
+end
+
+Callbacks.Register("test_cb", function(clp1, clp2, clp3)
+    return (clp1+clp2+clp3), "sum"
 end)
