@@ -138,6 +138,10 @@ function vector3(x,y,z)
 end
 
 local function repName(name, resname)
+    if name:find(resname or GetCurrentResourceName()) == 1 then
+        return name
+    end
+    
     return ((resname) and string.format("%s:%s", resname, name) or string.format("%s:%s",GetCurrentResourceName(), name))
 end
 
@@ -149,7 +153,7 @@ end
 Events.Trigger = function(name, params, resname)
     name = repName(name, resname)
 
-    return TriggerEvent(name, table.unpack(params))
+    return TriggerEvent(name, table.unpack(params, 1, params.n))
 end
 
 
@@ -160,8 +164,27 @@ if IsDuplicityVersion() then
     ]]
     Events.TriggerClient = function (name, source, params, resname)
         name = repName(name, resname)
+       
+        if type(source) == "table" then
+            for k,e in pairs(source) do
+                Events.TriggerClient(name, e, params, resname)
+            end
 
-        return TriggerClientEvent(name, source, table.unpack(params))
+            return
+        elseif type(source) == "string" and source:find("except:") then
+            local rep = source:gsub("except:", "")
+            local except = tonumber(rep, 10)
+            local players = GetPlayers()
+            for i=1, #players do
+                if i ~= except then
+                    Events.TriggerClient(name, players[i], params, resname)
+                end
+            end
+
+            return
+        end
+
+        return TriggerClientEvent(name, source, table.unpack(params, 1, params.n))
     end
 else
 
@@ -170,8 +193,8 @@ else
     ]]--
     Events.TriggerServer = function(name, params, resname)
         name = repName(name, resname)
-
-        return TriggerServerEvent(name, table.unpack(params))
+        
+        return TriggerServerEvent(name, table.unpack(params, 1, params.n))
     end
 end
 
@@ -179,12 +202,13 @@ end
     Registers an event with the specified name. Automatically joining, if present, the resource name.
 ]]
 Events.Register = function(name, callback, resname, notNet)
+
     name = repName(name, resname)
 
     if notNet then
-        return AddEventHandler(name, callback)
+        return AddEventHandler(name, function(...) return callback(...) end)
     else
-        return RegisterNetEvent(name, callback)
+        return RegisterNetEvent(name, function(...) return callback(...) end)
     end
 end
 
@@ -365,7 +389,7 @@ common.Jobs.isEmergency = function(job)
     return common.Arrays.find(policeJobs, job) or common.Arrays.find(emergency, job)
 end
 
---[[
+
 
 local RedStateBags = {}
 
@@ -403,9 +427,9 @@ if not IsDuplicityVersion() then
 
             bag.no_sync = bag_data.no_sync
         end
-        print("Sync all successful")
+
     end)
-    print("Ask for sync all")
+
     Events.TriggerServer("sync_all", { GetCurrentResourceName() }, "red_statebags")
 end
 
@@ -614,7 +638,7 @@ RedStateBags.GetBag = function(bag_type, bag_id)
         local exists_with_net = NetworkDoesEntityExistWithNetworkId(tonumber(bag_id))
         
         if not exists_with_net then
-            print(bag_id)
+
         end
 
         local is_networked = (exists_with_net) or NetworkGetEntityIsNetworked(bag_id)

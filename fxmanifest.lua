@@ -17,6 +17,8 @@ ui_page "web/build/index.html"
 client_scripts {
     "export/**_common.lua",
     "export/**_cl.lua",
+    "api/shared.lua",
+    "api/client.lua",
     "modules/**/shared.lua",
     'modules/**/client.lua'
 }
@@ -25,6 +27,9 @@ client_scripts {
 server_scripts {
     "export/**_common.lua",
     "export/**_sv.lua",
+    "api/shared.lua",
+    "api/server.lua",
+    "server.lua",
     "modules/**/shared.lua",
     "modules/**/server.lua"
 }
@@ -34,5 +39,6 @@ server_scripts {
 files {
     "Data/**.*",
     "export/**.lua",
+    "api/client.lua",
     "web/build/**.*"
 }
