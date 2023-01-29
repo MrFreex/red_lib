@@ -138,6 +138,10 @@ function vector3(x,y,z)
 end
 
 local function repName(name, resname)
+    if name:find(resname or GetCurrentResourceName()) == 1 then
+        return name
+    end
+    
     return ((resname) and string.format("%s:%s", resname, name) or string.format("%s:%s",GetCurrentResourceName(), name))
 end
 
@@ -160,7 +164,7 @@ if IsDuplicityVersion() then
     ]]
     Events.TriggerClient = function (name, source, params, resname)
         name = repName(name, resname)
-
+       
         if type(source) == "table" then
             for k,e in pairs(source) do
                 Events.TriggerClient(name, e, params, resname)
@@ -423,9 +427,9 @@ if not IsDuplicityVersion() then
 
             bag.no_sync = bag_data.no_sync
         end
-        print("Sync all successful")
+
     end)
-    print("Ask for sync all")
+
     Events.TriggerServer("sync_all", { GetCurrentResourceName() }, "red_statebags")
 end
 
@@ -634,7 +638,7 @@ RedStateBags.GetBag = function(bag_type, bag_id)
         local exists_with_net = NetworkDoesEntityExistWithNetworkId(tonumber(bag_id))
         
         if not exists_with_net then
-            print(bag_id)
+
         end
 
         local is_networked = (exists_with_net) or NetworkGetEntityIsNetworked(bag_id)

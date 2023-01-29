@@ -116,10 +116,6 @@ function Data.Hook(cb, id, index)
     return tostring(last_hook)
 end
 
-Data.Hook(function(...) 
-    print(...)
-end, "calls", {"a"})
-
 Events.Register("sync-shared-table", function(id, indexes, value)
     local t = Data.Synced[id].__original
     
@@ -150,7 +146,7 @@ Events.Register("sync-shared-table", function(id, indexes, value)
 end)
 
 Events.Register("sync-all-tables", function(s_tables)
-    debug("Syncing all tables")
+    debugPrint("Syncing all tables")
     Data.Synced = s_tables
 end)
 

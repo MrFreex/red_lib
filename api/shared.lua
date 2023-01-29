@@ -3,7 +3,7 @@ function merge(...)local a={...}local b={}for c=1,#a do for d,e in pairs(a[c])do
 
 -- Debug
 
-function debug(...)
+function debugPrint(...)
     if IsDuplicityVersion() or isDev then
         return print(...)
     end
